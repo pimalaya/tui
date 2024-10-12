@@ -1,7 +1,10 @@
 use std::{fs, path::Path, process::exit};
 
 use super::config::*;
-use crate::{config::toml::TomlConfig, print, prompt, wizard, Error, Result};
+use crate::{
+    terminal::{config::TomlConfig, print, prompt, wizard},
+    Error, Result,
+};
 
 const DEFAULT_BACKEND_KINDS: &[BackendKind] = &[
     #[cfg(feature = "imap")]

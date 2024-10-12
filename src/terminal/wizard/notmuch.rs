@@ -1,6 +1,6 @@
 use email::notmuch::config::NotmuchConfig;
 
-use crate::{prompt, Result};
+use crate::{terminal::prompt, Result};
 
 pub fn start() -> Result<NotmuchConfig> {
     let config = NotmuchConfig {

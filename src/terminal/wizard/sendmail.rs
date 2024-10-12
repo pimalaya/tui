@@ -1,6 +1,6 @@
 use email::sendmail::config::SendmailConfig;
 
-use crate::{prompt, Result};
+use crate::{terminal::prompt, Result};
 
 pub fn start() -> Result<SendmailConfig> {
     let cmd = prompt::text(

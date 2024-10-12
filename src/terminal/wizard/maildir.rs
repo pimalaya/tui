@@ -1,7 +1,7 @@
 use dirs::home_dir;
 use email::maildir::config::MaildirConfig;
 
-use crate::{prompt, Result};
+use crate::{terminal::prompt, Result};
 
 pub fn start(account_name: impl AsRef<str>) -> Result<MaildirConfig> {
     let account_name = account_name.as_ref();

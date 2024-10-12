@@ -17,44 +17,50 @@ rustdoc-args = ["--cfg", "docsrs", "--document-private-items"]
 
 [features]
 default = [
-  #"email",
-  #"path",
-
-  #"keyring",
-  #"oauth2",
-
+  #"himalaya",
   #"imap",
   #"maildir",
   #"notmuch",
   #"smtp",
   #"sendmail",
-
   #"cli",
+  #"email",
+  #"path",
   #"config",
+  #"keyring",
+  #"oauth2",
   #"tracing",
-
-  #"himalaya",
   #"wizard",
 ]
 
+# Pimalaya projects
+#
+himalaya = ["dep:async-trait", "dep:comfy-table", "dep:email-lib", "dep:process-lib", "dep:serde", "email-lib?/derive"]
+
+# Email backends
+#
+imap = ["dep:email-lib", "dep:secret-lib", "email", "email-lib?/autoconfig", "email-lib?/imap"]
+maildir = ["dep:email-lib", "dep:dirs", "email-lib?/maildir", "path"]
+notmuch = ["dep:email-lib", "email-lib?/notmuch", "path"]
+smtp = ["dep:email-lib", "dep:secret-lib", "email", "email-lib?/autoconfig", "email-lib?/smtp"]
+sendmail = ["dep:email-lib", "email-lib?/sendmail"]
+
+# Terminal CLI shared code
+#
+cli = ["dep:clap", "dep:color-eyre", "dep:serde", "dep:serde_json", "dep:shellexpand-utils"]
+
+# Terminal prompts
+#
 email = ["dep:email_address"]
 path = ["dep:shellexpand-utils"]
 
-keyring = ["email-lib/keyring", "secret-lib?/keyring-tokio"]
-oauth2 = ["dep:oauth-lib", "email-lib/oauth2"]
-
-imap = ["dep:email-lib", "dep:secret-lib", "email", "email-lib/autoconfig", "email-lib/imap"]
-maildir = ["dep:email-lib", "dep:dirs", "email-lib/maildir", "path"]
-notmuch = ["dep:email-lib", "email-lib/notmuch", "path"]
-smtp = ["dep:email-lib", "dep:secret-lib", "email", "email-lib/autoconfig", "email-lib/smtp"]
-sendmail = ["dep:email-lib", "email-lib/sendmail"]
-
-cli = ["dep:clap", "dep:color-eyre", "dep:serde", "dep:serde_json", "dep:shellexpand-utils"]
-config = ["dep:color-eyre", "dep:dirs", "dep:serde", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit", "dep:tracing"]
+# Other shared stuff
+#
+config = ["dep:async-trait", "dep:color-eyre", "dep:dirs", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit", "dep:tracing"]
+keyring = ["email-lib?/keyring", "secret-lib?/keyring-tokio"]
+oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
 tracing = ["dep:color-eyre", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
-
-himalaya = ["dep:async-trait", "dep:comfy-table", "dep:email-lib", "dep:process-lib", "email-lib/derive", "config"]
-wizard = ["dep:tokio"]
+wizard = ["dep:tokio", "email-lib?/autoconfig", "config"]
 
 [dependencies]
 async-trait = { version = "0.1", optional = true }

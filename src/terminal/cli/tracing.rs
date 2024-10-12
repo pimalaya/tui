@@ -2,7 +2,7 @@ use std::env;
 
 use color_eyre::Result;
 
-use crate::tracing::Tracing;
+use crate::terminal::tracing::Tracing;
 
 pub fn install() -> Result<Tracing> {
     if env::var("RUST_LOG").is_err() {

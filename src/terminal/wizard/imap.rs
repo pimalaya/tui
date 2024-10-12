@@ -6,19 +6,19 @@ use email::{
 use email::{
     account::config::passwd::PasswdConfig,
     autoconfig::config::{AutoConfig, SecurityType, ServerType},
-    smtp::config::{SmtpAuthConfig, SmtpConfig, SmtpEncryptionKind},
+    imap::config::{ImapAuthConfig, ImapConfig, ImapEncryptionKind},
 };
 use email_address::EmailAddress;
 #[cfg(feature = "oauth2")]
 use oauth::v2_0::{AuthorizationCodeGrant, Client};
 use secret::Secret;
 
-use crate::{prompt, Result};
+use crate::{terminal::prompt, Result};
 
-static ENCRYPTIONS: [SmtpEncryptionKind; 3] = [
-    SmtpEncryptionKind::Tls,
-    SmtpEncryptionKind::StartTls,
-    SmtpEncryptionKind::None,
+static ENCRYPTIONS: [ImapEncryptionKind; 3] = [
+    ImapEncryptionKind::Tls,
+    ImapEncryptionKind::StartTls,
+    ImapEncryptionKind::None,
 ];
 
 static SECRETS: &[&str] = &[
@@ -37,30 +37,30 @@ pub async fn start(
     account_name: impl AsRef<str>,
     email: &EmailAddress,
     autoconfig: Option<&AutoConfig>,
-) -> Result<SmtpConfig> {
+) -> Result<ImapConfig> {
     let account_name = account_name.as_ref();
 
     let autoconfig_server = autoconfig.and_then(|c| {
         c.email_provider()
-            .outgoing_servers()
+            .incoming_servers()
             .into_iter()
-            .find(|server| matches!(server.server_type(), ServerType::Smtp))
+            .find(|server| matches!(server.server_type(), ServerType::Imap))
     });
 
     let autoconfig_host = autoconfig_server
         .and_then(|s| s.hostname())
         .map(ToOwned::to_owned);
 
-    let default_host = autoconfig_host.unwrap_or_else(|| format!("smtp.{}", email.domain()));
+    let default_host = autoconfig_host.unwrap_or_else(|| format!("imap.{}", email.domain()));
 
-    let host = prompt::text("SMTP hostname:", Some(&default_host))?;
+    let host = prompt::text("IMAP hostname:", Some(&default_host))?;
 
     let autoconfig_encryption = autoconfig_server
-        .and_then(|smtp| {
-            smtp.security_type().map(|encryption| match encryption {
-                SecurityType::Plain => SmtpEncryptionKind::None,
-                SecurityType::Starttls => SmtpEncryptionKind::StartTls,
-                SecurityType::Tls => SmtpEncryptionKind::Tls,
+        .and_then(|imap| {
+            imap.security_type().map(|encryption| match encryption {
+                SecurityType::Plain => ImapEncryptionKind::None,
+                SecurityType::Starttls => ImapEncryptionKind::StartTls,
+                SecurityType::Tls => ImapEncryptionKind::Tls,
             })
         })
         .unwrap_or_default();
@@ -69,27 +69,27 @@ pub async fn start(
         .and_then(|config| config.port())
         .map(ToOwned::to_owned)
         .unwrap_or_else(|| match &autoconfig_encryption {
-            SmtpEncryptionKind::Tls => 993,
-            SmtpEncryptionKind::StartTls => 143,
-            SmtpEncryptionKind::None => 143,
+            ImapEncryptionKind::Tls => 993,
+            ImapEncryptionKind::StartTls => 143,
+            ImapEncryptionKind::None => 143,
         });
 
     let encryption = prompt::item(
-        "SMTP encryption:",
+        "IMAP encryption:",
         ENCRYPTIONS.clone(),
         Some(autoconfig_encryption.clone()),
     )?;
 
     let default_port = match encryption {
         ref encryption if encryption == &autoconfig_encryption => autoconfig_port,
-        SmtpEncryptionKind::Tls => 993,
-        SmtpEncryptionKind::StartTls => 143,
-        SmtpEncryptionKind::None => 143,
+        ImapEncryptionKind::Tls => 993,
+        ImapEncryptionKind::StartTls => 143,
+        ImapEncryptionKind::None => 143,
     };
 
-    let port = prompt::u16("SMTP port:", Some(default_port))?;
+    let port = prompt::u16("IMAP port:", Some(default_port))?;
 
-    let autoconfig_login = autoconfig_server.map(|smtp| match smtp.username() {
+    let autoconfig_login = autoconfig_server.map(|imap| match imap.username() {
         Some("%EMAILLOCALPART%") => email.local_part().to_owned(),
         Some("%EMAILADDRESS%") => email.to_string(),
         _ => email.to_string(),
@@ -97,7 +97,7 @@ pub async fn start(
 
     let default_login = autoconfig_login.unwrap_or_else(|| email.to_string());
 
-    let login = prompt::text("SMTP login:", Some(&default_login))?;
+    let login = prompt::text("IMAP login:", Some(&default_login))?;
 
     // ------------
 
@@ -109,8 +109,8 @@ pub async fn start(
         let autoconfig_oauth2 = autoconfig.and_then(|c| c.oauth2());
 
         let default_oauth2_enabled = autoconfig_server
-            .and_then(|smtp| {
-                smtp.authentication_type()
+            .and_then(|imap| {
+                imap.authentication_type()
                     .into_iter()
                     .find_map(|t| Option::from(matches!(t, AuthenticationType::OAuth2)))
             })
@@ -125,16 +125,16 @@ pub async fn start(
             let redirect_port = OAuth2Config::get_first_available_port()?;
 
             config.method = prompt::item(
-                "SMTP OAuth 2.0 mechanism:",
+                "IMAP OAuth 2.0 mechanism:",
                 OAUTH2_MECHANISMS.clone(),
                 Some(OAuth2Method::XOAuth2),
             )?;
 
-            config.client_id = prompt::text("SMTP OAuth 2.0 client id:", None)?;
+            config.client_id = prompt::text("IMAP OAuth 2.0 client id:", None)?;
 
-            let client_secret = prompt::secret("SMTP OAuth 2.0 client secret:")?;
+            let client_secret = prompt::secret("IMAP OAuth 2.0 client secret:")?;
             config.client_secret =
-                Secret::try_new_keyring_entry(format!("{account_name}-smtp-oauth2-client-secret"))?;
+                Secret::try_new_keyring_entry(format!("{account_name}-imap-oauth2-client-secret"))?;
             config
                 .client_secret
                 .set_only_keyring(&client_secret)
@@ -144,12 +144,12 @@ pub async fn start(
                 .map(|config| config.auth_url().to_owned())
                 .unwrap_or_default();
             config.auth_url =
-                prompt::text("SMTP OAuth 2.0 authorization URL:", Some(&default_auth_url))?;
+                prompt::text("IMAP OAuth 2.0 authorization URL:", Some(&default_auth_url))?;
 
             let default_token_url = autoconfig_oauth2
                 .map(|config| config.token_url().to_owned())
                 .unwrap_or_default();
-            config.token_url = prompt::text("SMTP OAuth 2.0 token URL:", Some(&default_token_url))?;
+            config.token_url = prompt::text("IMAP OAuth 2.0 token URL:", Some(&default_token_url))?;
 
             let autoconfig_scopes = autoconfig_oauth2.map(|config| config.scope());
 
@@ -160,12 +160,12 @@ pub async fn start(
                 })
             };
 
-            if let Some(scope) = prompt_scope("SMTP OAuth 2.0 main scope:")? {
+            if let Some(scope) = prompt_scope("IMAP OAuth 2.0 main scope:")? {
                 config.scopes = OAuth2Scopes::Scope(scope);
             }
 
             let confirm_additional_scope = || -> Result<bool> {
-                let confirm = prompt::bool("More SMTP OAuth 2.0 scopes?", false)?;
+                let confirm = prompt::bool("More IMAP OAuth 2.0 scopes?", false)?;
                 Ok(confirm)
             };
 
@@ -175,7 +175,7 @@ pub async fn start(
                     OAuth2Scopes::Scopes(scopes) => scopes,
                 };
 
-                if let Some(scope) = prompt_scope("Additional SMTP OAuth 2.0 scope:")? {
+                if let Some(scope) = prompt_scope("Additional IMAP OAuth 2.0 scope:")? {
                     scopes.push(scope)
                 }
 
@@ -184,7 +184,9 @@ pub async fn start(
 
             config.pkce = prompt::bool("Enable PKCE verification?", true)?;
 
-            crate::print::section("To complete your OAuth 2.0 setup, click on the following link:");
+            crate::terminal::print::section(
+                "To complete your OAuth 2.0 setup, click on the following link:",
+            );
 
             let client = Client::new(
                 config.client_id.clone(),
@@ -218,17 +220,17 @@ pub async fn start(
                 .await?;
 
             config.access_token =
-                Secret::try_new_keyring_entry(format!("{account_name}-smtp-oauth2-access-token"))?;
+                Secret::try_new_keyring_entry(format!("{account_name}-imap-oauth2-access-token"))?;
             config.access_token.set_only_keyring(access_token).await?;
 
             if let Some(refresh_token) = &refresh_token {
                 config.refresh_token = Secret::try_new_keyring_entry(format!(
-                    "{account_name}-smtp-oauth2-refresh-token"
+                    "{account_name}-imap-oauth2-refresh-token"
                 ))?;
                 config.refresh_token.set_only_keyring(refresh_token).await?;
             }
 
-            SmtpAuthConfig::OAuth2(config)
+            ImapAuthConfig::OAuth2(config)
         } else {
             configure_passwd(account_name).await?
         }
@@ -237,26 +239,29 @@ pub async fn start(
     #[cfg(not(feature = "oauth2"))]
     let auth = configure_passwd(account_name).await?;
 
-    Ok(SmtpConfig {
+    Ok(ImapConfig {
         host,
         port,
         encryption: Some(encryption),
         login,
         auth,
+        watch: None,
+        extensions: None,
+        clients_pool_size: None,
     })
 }
 
-pub(crate) async fn configure_passwd(account_name: &str) -> Result<SmtpAuthConfig> {
-    let secret = match prompt::item("SMTP authentication strategy:", SECRETS, None)? {
+pub(crate) async fn configure_passwd(account_name: &str) -> Result<ImapAuthConfig> {
+    let secret = match prompt::item("IMAP authentication strategy:", SECRETS, None)? {
         #[cfg(feature = "keyring")]
         &KEYRING => {
-            let secret = Secret::try_new_keyring_entry(format!("{account_name}-smtp-passwd"))?;
+            let secret = Secret::try_new_keyring_entry(format!("{account_name}-imap-passwd"))?;
             secret
-                .set_only_keyring(prompt::password("SMTP password:")?)
+                .set_only_keyring(prompt::password("IMAP password:")?)
                 .await?;
             secret
         }
-        &RAW => Secret::new_raw(prompt::password("SMTP password:")?),
+        &RAW => Secret::new_raw(prompt::password("IMAP password:")?),
         &CMD => Secret::new_command(prompt::text(
             "Shell command:",
             Some(&format!("pass show {account_name}")),
@@ -264,5 +269,5 @@ pub(crate) async fn configure_passwd(account_name: &str) -> Result<SmtpAuthConfi
         _ => unreachable!(),
     };
 
-    Ok(SmtpAuthConfig::Passwd(PasswdConfig(secret)))
+    Ok(ImapAuthConfig::Passwd(PasswdConfig(secret)))
 }

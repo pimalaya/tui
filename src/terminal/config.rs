@@ -1,6 +1,3 @@
-#[cfg(feature = "himalaya")]
-pub mod himalaya;
-
 use std::{fs, path::PathBuf};
 
 use async_trait::async_trait;
@@ -9,7 +6,6 @@ use email::{account::config::AccountConfig, config::Config};
 use serde::Deserialize;
 use serde_toml_merge::merge;
 use toml::Value;
-use tracing::debug;
 
 use crate::{Error, Result};
 
@@ -51,21 +47,23 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
                     .map_err(|err| Error::ParseTomlConfigFile(err, path.clone()))?;
 
                 for path in &paths[1..] {
-                    match fs::read_to_string(path) {
-                        Ok(content) => {
-                            merged_content = merge(
-                                merged_content,
-                                content
-                                    .parse()
-                                    .map_err(|err| Error::ParseTomlConfigFile(err, path.clone()))?,
-                            )
-                            .map_err(Error::MergeTomlConfigFiles)?;
-                        }
-                        Err(err) => {
-                            debug!(?path, ?err, "skipping invalid subconfig file");
-                            continue;
-                        }
+                    let content = fs::read_to_string(path);
+
+                    #[cfg(feature = "tracing")]
+                    if let Err(err) = &content {
+                        tracing::debug!(?path, ?err, "skipping invalid subconfig file");
                     }
+
+                    let Ok(content) = content else {
+                        continue;
+                    };
+
+                    let content = content
+                        .parse()
+                        .map_err(|err| Error::ParseTomlConfigFile(err, path.clone()))?;
+
+                    merged_content =
+                        merge(merged_content, content).map_err(Error::MergeTomlConfigFiles)?;
                 }
 
                 merged_content
@@ -94,7 +92,7 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
             #[cfg(feature = "wizard")]
             _ => Self::from_wizard(&paths[0]).await,
             #[cfg(not(feature = "wizard"))]
-            _ => color_eyre::eyre::bail!("cannot find config file from default paths"),
+            _ => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
     }
 
@@ -105,7 +103,7 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
             #[cfg(feature = "wizard")]
             None => Self::from_wizard(&Self::default_path()?).await,
             #[cfg(not(feature = "wizard"))]
-            None => color_eyre::eyre::bail!("cannot find config file from default paths"),
+            None => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
     }
 
@@ -168,31 +166,14 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
         &self,
         account_name: Option<&str>,
     ) -> Result<(String, Self::AccountConfig)> {
-        #[allow(unused_mut)]
-        let (account_name, mut toml_account_config) = match account_name {
+        match account_name {
             Some("default") | Some("") | None => self
                 .get_default_account_config()
                 .ok_or(Error::GetDefaultAccountConfigError),
             Some(name) => self
                 .get_account_config(name)
                 .ok_or_else(|| Error::GetAccountConfigError(name.to_owned())),
-        }?;
-
-        #[cfg(all(feature = "imap", feature = "keyring"))]
-        if let Some(imap_config) = toml_account_config.imap.as_mut() {
-            imap_config
-                .auth
-                .replace_undefined_keyring_entries(&account_name)?;
         }
-
-        #[cfg(all(feature = "smtp", feature = "keyring"))]
-        if let Some(smtp_config) = toml_account_config.smtp.as_mut() {
-            smtp_config
-                .auth
-                .replace_undefined_keyring_entries(&account_name)?;
-        }
-
-        Ok((account_name, toml_account_config))
     }
 
     fn into_account_configs(

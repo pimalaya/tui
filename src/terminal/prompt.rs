@@ -4,10 +4,7 @@ use std::path::{Path, PathBuf};
 
 use inquire::{Confirm, Password, PasswordDisplayMode, Select, Text};
 
-use crate::{
-    validator::{U16Validator, UsizeValidator},
-    Error, Result,
-};
+use crate::{terminal::validator::*, Error, Result};
 
 pub fn u16(prompt: impl AsRef<str>, default: Option<u16>) -> Result<u16> {
     let prompt = Text::new(prompt.as_ref()).with_validator(U16Validator);
@@ -125,7 +122,7 @@ pub fn path(prompt: impl AsRef<str>, default: Option<impl AsRef<Path>>) -> Resul
 
 #[cfg(feature = "email")]
 pub fn email<T: AsRef<str>>(prompt: T, default: Option<T>) -> Result<email_address::EmailAddress> {
-    let mut prompt = Text::new(prompt.as_ref()).with_validator(crate::validator::EmailValidator);
+    let mut prompt = Text::new(prompt.as_ref()).with_validator(EmailValidator);
 
     if let Some(default) = default.as_ref() {
         prompt = prompt.with_default(default.as_ref());

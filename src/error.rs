@@ -5,6 +5,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[cfg(feature = "config")]
+    #[error("cannot create TOML config from invalid or missing paths")]
+    CreateTomlConfigFromInvalidPathsError,
+
     #[error("cannot prompt unsigned integer (u16)")]
     PromptU16Error(#[source] InquireError),
     #[error("cannot prompt unsigned integer (usize)")]
@@ -32,6 +36,12 @@ pub enum Error {
     #[cfg(feature = "imap")]
     #[error(transparent)]
     AccountError(#[from] email::account::Error),
+    #[cfg(feature = "imap")]
+    #[error(transparent)]
+    ImapError(#[from] email::imap::Error),
+    #[cfg(feature = "smtp")]
+    #[error(transparent)]
+    SmtpError(#[from] email::smtp::Error),
     #[cfg(feature = "imap")]
     #[error(transparent)]
     SecretError(#[from] secret::Error),

@@ -1,6 +1,5 @@
 use std::{collections::HashMap, fmt, path::PathBuf};
 
-use async_trait::async_trait;
 use comfy_table::presets;
 use crossterm::style::Color;
 #[cfg(feature = "pgp")]
@@ -25,15 +24,15 @@ use email::{
     template::config::TemplateConfig,
 };
 use process::Command;
-use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "wizard")]
-use super::wizard;
-use crate::{config::toml::TomlConfig, Result};
-
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case", deny_unknown_fields)
+)]
 pub struct HimalayaTomlConfig {
+    #[cfg_attr(feature = "config", serde(alias = "name"))]
     pub display_name: Option<String>,
     pub signature: Option<String>,
     pub signature_delim: Option<String>,
@@ -62,8 +61,9 @@ impl From<HimalayaTomlConfig> for Config {
     }
 }
 
-#[async_trait]
-impl TomlConfig for HimalayaTomlConfig {
+#[cfg(feature = "config")]
+#[async_trait::async_trait]
+impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
     type AccountConfig = HimalayaTomlAccountConfig;
 
     fn project_name() -> &'static str {
@@ -86,16 +86,46 @@ impl TomlConfig for HimalayaTomlConfig {
     }
 
     #[cfg(feature = "wizard")]
-    async fn from_wizard(path: &std::path::Path) -> Result<Self> {
-        wizard::confirm_or_exit(path)?;
-        let config = wizard::run(path).await?;
+    async fn from_wizard(path: &std::path::Path) -> crate::Result<Self> {
+        super::wizard::confirm_or_exit(path)?;
+        let config = super::wizard::run(path).await?;
 
         Ok(config)
     }
+
+    fn to_toml_account_config(
+        &self,
+        account_name: Option<&str>,
+    ) -> crate::Result<(String, Self::AccountConfig)> {
+        let (name, mut config) = match account_name {
+            Some("default") | Some("") | None => self
+                .get_default_account_config()
+                .ok_or(crate::Error::GetDefaultAccountConfigError),
+            Some(name) => self
+                .get_account_config(name)
+                .ok_or_else(|| crate::Error::GetAccountConfigError(name.to_owned())),
+        }?;
+
+        #[cfg(all(feature = "imap", feature = "keyring"))]
+        if let Some(imap_config) = config.imap.as_mut() {
+            imap_config.auth.replace_undefined_keyring_entries(&name)?;
+        }
+
+        #[cfg(all(feature = "smtp", feature = "keyring"))]
+        if let Some(smtp_config) = config.smtp.as_mut() {
+            smtp_config.auth.replace_undefined_keyring_entries(&name)?;
+        }
+
+        Ok((name, config))
+    }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case", deny_unknown_fields)
+)]
 pub struct HimalayaTomlAccountConfig {
     pub default: Option<bool>,
     pub email: String,
@@ -147,20 +177,32 @@ impl From<HimalayaTomlAccountConfig> for AccountConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct AccountsConfig {
     pub list: Option<ListAccountsConfig>,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListAccountsConfig {
     pub table: Option<ListAccountsTableConfig>,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListAccountsTableConfig {
     pub preset: Option<String>,
     pub name_color: Option<Color>,
@@ -186,9 +228,14 @@ impl ListAccountsTableConfig {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub enum BackendKind {
+    #[default]
     None,
     #[cfg(feature = "imap")]
     Imap,
@@ -224,7 +271,12 @@ impl fmt::Display for BackendKind {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct EnvelopeConfig {
     pub list: Option<ListEnvelopesConfig>,
 }
@@ -310,8 +362,12 @@ impl EnvelopeConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListEnvelopesConfig {
     pub page_size: Option<usize>,
     pub datetime_fmt: Option<String>,
@@ -329,8 +385,12 @@ impl From<ListEnvelopesConfig> for email::envelope::list::config::EnvelopeListCo
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListEnvelopesTableConfig {
     pub preset: Option<String>,
 
@@ -404,7 +464,12 @@ impl ListEnvelopesTableConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct FolderConfig {
     pub aliases: Option<HashMap<String, String>>,
     pub list: Option<ListFoldersConfig>,
@@ -419,7 +484,12 @@ impl From<FolderConfig> for email::folder::config::FolderConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListFoldersConfig {
     pub table: Option<ListFoldersTableConfig>,
     pub page_size: Option<usize>,
@@ -433,8 +503,12 @@ impl From<ListFoldersConfig> for email::folder::list::config::FolderListConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct ListFoldersTableConfig {
     pub preset: Option<String>,
     pub name_color: Option<Color>,
@@ -455,7 +529,12 @@ impl ListFoldersTableConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct MessageConfig {
     pub read: Option<MessageReadConfig>,
     pub write: Option<MessageWriteConfig>,
@@ -474,7 +553,12 @@ impl From<MessageConfig> for email::message::config::MessageConfig {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(
+    feature = "config",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "kebab-case")
+)]
 pub struct SendMessageConfig {
     pub backend: Option<BackendKind>,
     pub save_copy: Option<bool>,
