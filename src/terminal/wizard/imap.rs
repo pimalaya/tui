@@ -4,7 +4,7 @@ use email::{
     autoconfig::config::AuthenticationType,
 };
 use email::{
-    account::config::passwd::PasswdConfig,
+    account::config::passwd::PasswordConfig,
     autoconfig::config::{AutoConfig, SecurityType, ServerType},
     imap::config::{ImapAuthConfig, ImapConfig, ImapEncryptionKind},
 };
@@ -121,8 +121,6 @@ pub async fn start(
 
         if oauth2_enabled {
             let mut config = OAuth2Config::default();
-            let redirect_host = OAuth2Config::LOCALHOST;
-            let redirect_port = OAuth2Config::get_first_available_port()?;
 
             config.method = prompt::item(
                 "IMAP OAuth 2.0 mechanism:",
@@ -135,10 +133,22 @@ pub async fn start(
             let client_secret = prompt::secret("IMAP OAuth 2.0 client secret:")?;
             config.client_secret =
                 Secret::try_new_keyring_entry(format!("{account_name}-imap-oauth2-client-secret"))?;
-            config
-                .client_secret
-                .set_only_keyring(&client_secret)
-                .await?;
+            config.client_secret.set_if_keyring(&client_secret).await?;
+
+            config.redirect_scheme = Some(prompt::text(
+                "IMAP OAuth 2.0 redirect URL scheme:",
+                Some("http"),
+            )?);
+
+            config.redirect_host = Some(prompt::text(
+                "IMAP OAuth 2.0 redirect URL hostname:",
+                Some(OAuth2Config::LOCALHOST),
+            )?);
+
+            config.redirect_port = Some(prompt::u16(
+                "IMAP OAuth 2.0 redirect URL port:",
+                Some(OAuth2Config::get_first_available_port()?),
+            )?);
 
             let default_auth_url = autoconfig_oauth2
                 .map(|config| config.auth_url().to_owned())
@@ -193,14 +203,12 @@ pub async fn start(
                 client_secret,
                 config.auth_url.clone(),
                 config.token_url.clone(),
-            )?
-            .with_redirect_host(redirect_host.to_owned())
-            .with_redirect_port(redirect_port)
-            .build()?;
+                config.redirect_scheme.clone().unwrap(),
+                config.redirect_host.clone().unwrap(),
+                config.redirect_port.clone().unwrap(),
+            )?;
 
-            let mut auth_code_grant = AuthorizationCodeGrant::new()
-                .with_redirect_host(redirect_host.to_owned())
-                .with_redirect_port(redirect_port);
+            let mut auth_code_grant = AuthorizationCodeGrant::new();
 
             if config.pkce {
                 auth_code_grant = auth_code_grant.with_pkce();
@@ -221,13 +229,13 @@ pub async fn start(
 
             config.access_token =
                 Secret::try_new_keyring_entry(format!("{account_name}-imap-oauth2-access-token"))?;
-            config.access_token.set_only_keyring(access_token).await?;
+            config.access_token.set_if_keyring(access_token).await?;
 
             if let Some(refresh_token) = &refresh_token {
                 config.refresh_token = Secret::try_new_keyring_entry(format!(
                     "{account_name}-imap-oauth2-refresh-token"
                 ))?;
-                config.refresh_token.set_only_keyring(refresh_token).await?;
+                config.refresh_token.set_if_keyring(refresh_token).await?;
             }
 
             ImapAuthConfig::OAuth2(config)
@@ -257,7 +265,7 @@ pub(crate) async fn configure_passwd(account_name: &str) -> Result<ImapAuthConfi
         &KEYRING => {
             let secret = Secret::try_new_keyring_entry(format!("{account_name}-imap-passwd"))?;
             secret
-                .set_only_keyring(prompt::password("IMAP password:")?)
+                .set_if_keyring(prompt::password("IMAP password:")?)
                 .await?;
             secret
         }
@@ -269,5 +277,5 @@ pub(crate) async fn configure_passwd(account_name: &str) -> Result<ImapAuthConfi
         _ => unreachable!(),
     };
 
-    Ok(ImapAuthConfig::Passwd(PasswdConfig(secret)))
+    Ok(ImapAuthConfig::Password(PasswordConfig(secret)))
 }

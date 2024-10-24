@@ -1,10 +1,39 @@
-use std::{fs, path::Path, process::exit};
+use std::{fmt, fs, path::Path, process::exit};
 
 use super::config::*;
 use crate::{
     terminal::{config::TomlConfig, print, prompt, wizard},
     Error, Result,
 };
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BackendKind {
+    None,
+    #[cfg(feature = "imap")]
+    Imap,
+    #[cfg(feature = "maildir")]
+    Maildir,
+    #[cfg(feature = "notmuch")]
+    Notmuch,
+}
+
+impl fmt::Display for BackendKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::None => "None",
+                #[cfg(feature = "imap")]
+                Self::Imap => "IMAP",
+                #[cfg(feature = "maildir")]
+                Self::Maildir => "Maildir",
+                #[cfg(feature = "notmuch")]
+                Self::Notmuch => "Notmuch",
+            }
+        )
+    }
+}
 
 const DEFAULT_BACKEND_KINDS: &[BackendKind] = &[
     #[cfg(feature = "imap")]
@@ -15,11 +44,36 @@ const DEFAULT_BACKEND_KINDS: &[BackendKind] = &[
     BackendKind::Notmuch,
 ];
 
-const SEND_MESSAGE_BACKEND_KINDS: &[BackendKind] = &[
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SendingBackendKind {
+    None,
     #[cfg(feature = "smtp")]
-    BackendKind::Smtp,
+    Smtp,
     #[cfg(feature = "sendmail")]
-    BackendKind::Sendmail,
+    Sendmail,
+}
+
+impl fmt::Display for SendingBackendKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::None => "None",
+                #[cfg(feature = "smtp")]
+                Self::Smtp => "SMTP",
+                #[cfg(feature = "sendmail")]
+                Self::Sendmail => "Sendmail",
+            }
+        )
+    }
+}
+
+const SEND_MESSAGE_BACKEND_KINDS: &[SendingBackendKind] = &[
+    #[cfg(feature = "smtp")]
+    SendingBackendKind::Smtp,
+    #[cfg(feature = "sendmail")]
+    SendingBackendKind::Sendmail,
 ];
 
 pub fn confirm_or_exit(path: &Path) -> Result<()> {
@@ -78,25 +132,22 @@ pub async fn run(path: impl AsRef<Path>) -> Result<HimalayaTomlConfig> {
     let backend = prompt::item("Default backend:", &*DEFAULT_BACKEND_KINDS, None)?;
 
     match backend {
+        BackendKind::None => (),
         #[cfg(feature = "imap")]
         BackendKind::Imap => {
-            let imap_config = wizard::imap::start(&account_name, &email, autoconfig).await?;
-            account_config.imap = Some(imap_config);
-            account_config.backend = Some(BackendKind::Imap);
+            let config = wizard::imap::start(&account_name, &email, autoconfig).await?;
+            account_config.backend = Some(Backend::Imap(config));
         }
         #[cfg(feature = "maildir")]
         BackendKind::Maildir => {
-            let mdir_config = wizard::maildir::start(&account_name)?;
-            account_config.maildir = Some(mdir_config);
-            account_config.backend = Some(BackendKind::Maildir);
+            let config = wizard::maildir::start(&account_name)?;
+            account_config.backend = Some(Backend::Maildir(config));
         }
         #[cfg(feature = "notmuch")]
         BackendKind::Notmuch => {
-            let notmuch_config = wizard::notmuch::start()?;
-            account_config.notmuch = Some(notmuch_config);
-            account_config.backend = Some(BackendKind::Notmuch);
+            let config = wizard::notmuch::start()?;
+            account_config.backend = Some(Backend::Notmuch(config));
         }
-        _ => (),
     }
 
     let backend = prompt::item(
@@ -106,31 +157,29 @@ pub async fn run(path: impl AsRef<Path>) -> Result<HimalayaTomlConfig> {
     )?;
 
     match backend {
+        SendingBackendKind::None => (),
         #[cfg(feature = "smtp")]
-        BackendKind::Smtp => {
-            let smtp_config = wizard::smtp::start(&account_name, &email, autoconfig).await?;
-            account_config.smtp = Some(smtp_config);
+        SendingBackendKind::Smtp => {
+            let config = wizard::smtp::start(&account_name, &email, autoconfig).await?;
             account_config.message = Some(MessageConfig {
                 send: Some(SendMessageConfig {
-                    backend: Some(BackendKind::Smtp),
+                    backend: Some(SendingBackend::Smtp(config)),
                     ..Default::default()
                 }),
                 ..Default::default()
             });
         }
         #[cfg(feature = "sendmail")]
-        BackendKind::Sendmail => {
-            let sendmail_config = wizard::sendmail::start()?;
-            account_config.sendmail = Some(sendmail_config);
+        SendingBackendKind::Sendmail => {
+            let config = wizard::sendmail::start()?;
             account_config.message = Some(MessageConfig {
                 send: Some(SendMessageConfig {
-                    backend: Some(BackendKind::Sendmail),
+                    backend: Some(SendingBackend::Sendmail(config)),
                     ..Default::default()
                 }),
                 ..Default::default()
             });
         }
-        _ => (),
     };
 
     config.accounts.insert(account_name, account_config);

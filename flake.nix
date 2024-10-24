@@ -131,6 +131,10 @@
 
               # Notmuch
               notmuch
+
+              # GPG
+              gnupg
+              gpgme
             ];
           };
         };
