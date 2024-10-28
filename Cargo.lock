@@ -1164,7 +1164,8 @@ dependencies = [
 [[package]]
 name = "email-lib"
 version = "0.26.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efdb5d972806dac8ab65f659d7c7ec59fc683bd2b9e149bdc77b18ae95a16fd9"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1770,7 +1771,8 @@ dependencies = [
 [[package]]
 name = "http-lib"
 version = "0.1.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "994cbd23c90551cb5821d1c9d9b1e41383f338b31fc122671edc7d1695a61338"
 dependencies = [
  "thiserror",
  "tokio",
@@ -1845,7 +1847,8 @@ dependencies = [
 [[package]]
 name = "imap-client"
 version = "0.1.5"
-source = "git+https://github.com/pimalaya/imap-client#d888c5ae30a327ff93d3912a99145fcf9918ec52"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e667382fe3b5f75c78af4f7028a44435ed5f6da8e91500037115cee1569d8c5"
 dependencies = [
  "imap-next",
  "once_cell",
@@ -1872,8 +1875,9 @@ dependencies = [
 
 [[package]]
 name = "imap-next"
-version = "0.2.0"
-source = "git+https://github.com/duesee/imap-next#7e120f40cb30cef0f761c0efd44a4846234e9e91"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "793a41b36eb0fbe7eff9d8715717be264c9429d1989a60fd3d7893476b966506"
 dependencies = [
  "bytes",
  "imap-codec",
@@ -2057,7 +2061,8 @@ dependencies = [
 [[package]]
 name = "keyring-lib"
 version = "1.0.2"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56921558c465f33d51c6047b86b76764cd2a86b69b99653b43ba1f9a32965218"
 dependencies = [
  "keyring",
  "once_cell",
@@ -2337,7 +2342,8 @@ dependencies = [
 [[package]]
 name = "mml-lib"
 version = "1.1.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4ac497207f2c20c5f29503ad6e04a7d5a15e29583526764a03d46239d5b80fa"
 dependencies = [
  "async-recursion",
  "chumsky",
@@ -2536,7 +2542,8 @@ dependencies = [
 [[package]]
 name = "oauth-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d936e2859cd8769d97a035df0886e0a8c487d916415b4ad3802ecd5a86664452"
 dependencies = [
  "http-lib",
  "oauth2",
@@ -2809,7 +2816,8 @@ dependencies = [
 [[package]]
 name = "pgp-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62b1a64cb843daaa31d7109d77871ba6fcaa25be5b488c97eeb28fc378e5fed7"
 dependencies = [
  "async-recursion",
  "futures",
@@ -2985,7 +2993,8 @@ dependencies = [
 [[package]]
 name = "process-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3eb47ed33aeaf6b32cecbbde6f56dde6c8740f2dac4a146179cc82f797918c46"
 dependencies = [
  "serde",
  "thiserror",
@@ -3428,7 +3437,8 @@ dependencies = [
 [[package]]
 name = "secret-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#44777ff3411c827b7ac562d6f3a10a34a70aab35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba34b385def61154faed219ac86f80ad8c72877a278208bac2ecdd85d68f962f"
 dependencies = [
  "keyring-lib",
  "process-lib",

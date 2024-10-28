@@ -80,7 +80,7 @@ color-eyre = { version = "0.6", optional = true }
 comfy-table = { version = "7.1", optional = true }
 crossterm = { version = "0.27", features = ["serde"] }
 dirs = { version = "4", optional = true }
-email-lib = { version = "0.26", optional = true, default-features = false, features = ["tokio-rustls"] }
+email-lib = { version = "=0.26", optional = true, default-features = false, features = ["tokio-rustls"] }
 email_address = { version = "0.2", optional = true, default-features = false }
 inquire = "0.7"
 md5 = "0.7"
@@ -101,14 +101,3 @@ toml_edit = { version = "0.22", optional = true }
 tracing = { version = "0.1", optional = true }
 tracing-error = { version = "0.2.0", optional = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional = true }
-
-[patch.crates-io]
-imap-next = { git = "https://github.com/duesee/imap-next" }
-imap-client = { git = "https://github.com/pimalaya/imap-client" }
-email-lib = { git = "https://github.com/pimalaya/core" }
-keyring-lib = { git = "https://github.com/pimalaya/core" }
-mml-lib = { git = "https://github.com/pimalaya/core" }
-oauth-lib = { git = "https://github.com/pimalaya/core" }
-pgp-lib = { git = "https://github.com/pimalaya/core" }
-process-lib = { git = "https://github.com/pimalaya/core" }
-secret-lib = { git = "https://github.com/pimalaya/core" }
