@@ -82,7 +82,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
     loop {
         match choice::post_edit() {
             Ok(PostEditChoice::Send) => {
-                printer.log("Sending email…")?;
+                printer.log("Sending message…\n")?;
 
                 #[allow(unused_mut)]
                 let mut compiler = MmlCompilerBuilder::new();
@@ -95,7 +95,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                 backend.send_message_then_save_copy(&email).await?;
 
                 remove_local_draft()?;
-                printer.log("Done!")?;
+                printer.out("Message successfully sent!\n")?;
                 break;
             }
             Ok(PostEditChoice::Edit) => {
@@ -103,7 +103,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                 continue;
             }
             Ok(PostEditChoice::LocalDraft) => {
-                printer.log("Email successfully saved locally")?;
+                printer.out("Message successfully saved locally!\n")?;
                 break;
             }
             Ok(PostEditChoice::RemoteDraft) => {
@@ -123,7 +123,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                     )
                     .await?;
                 remove_local_draft()?;
-                printer.log("Email successfully saved to drafts")?;
+                printer.out("Message successfully saved to drafts!\n")?;
                 break;
             }
             Ok(PostEditChoice::Discard) => {
@@ -131,7 +131,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                 break;
             }
             Err(err) => {
-                println!("{}", err);
+                printer.out(format!("{err}\n"));
                 continue;
             }
         }

@@ -52,9 +52,9 @@ sendmail = ["dep:email-lib", "email-lib?/sendmail"]
 # PGP backends
 #
 pgp = []
-pgp-commands = ["pgp", "email-lib?/pgp-commands"]
-pgp-gpg = ["pgp", "email-lib?/pgp-gpg"]
-pgp-native = ["pgp", "email-lib?/pgp-native"]
+pgp-commands = ["email-lib?/pgp-commands", "mml-lib?/pgp-commands", "pgp"]
+pgp-gpg = ["email-lib?/pgp-gpg", "mml-lib?/pgp-gpg", "pgp"]
+pgp-native = ["email-lib?/pgp-native", "mml-lib?/pgp-native", "pgp"]
 
 # Terminal CLI shared code
 #
@@ -106,3 +106,9 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional =
 imap-next = { git = "https://github.com/duesee/imap-next" }
 imap-client = { git = "https://github.com/pimalaya/imap-client" }
 email-lib = { git = "https://github.com/pimalaya/core" }
+keyring-lib = { git = "https://github.com/pimalaya/core" }
+mml-lib = { git = "https://github.com/pimalaya/core" }
+oauth-lib = { git = "https://github.com/pimalaya/core" }
+pgp-lib = { git = "https://github.com/pimalaya/core" }
+process-lib = { git = "https://github.com/pimalaya/core" }
+secret-lib = { git = "https://github.com/pimalaya/core" }
