@@ -2367,14 +2367,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4ac497207f2c20c5f29503ad6e04a7d5a15e29583526764a03d46239d5b80fa"
 dependencies = [
  "async-recursion",
+ "chumsky",
  "mail-builder",
  "mail-parser",
+ "nanohtml2text",
  "pgp-lib 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "process-lib 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "secret-lib 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
+ "shellexpand-utils",
  "thiserror",
  "tracing",
+ "tree_magic_mini",
 ]
 
 [[package]]

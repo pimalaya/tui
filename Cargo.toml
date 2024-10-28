@@ -84,7 +84,7 @@ email-lib = { version = "0.26", optional = true, default-features = false, featu
 email_address = { version = "0.2", optional = true, default-features = false }
 inquire = "0.7"
 md5 = "0.7"
-mml-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls", "derive"] }
+mml-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls", "compiler", "interpreter", "derive"] }
 oauth-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls"] }
 petgraph = { version = "0.6", optional = true }
 process-lib = { version = "1", optional = true, features = ["tokio", "derive"] }
