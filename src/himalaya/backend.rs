@@ -15,7 +15,9 @@ use email::smtp::{SmtpContextBuilder, SmtpContextSync};
 use email::{
     account::config::AccountConfig,
     backend::{
-        context::BackendContextBuilder, feature::BackendFeature, macros::BackendContext,
+        context::BackendContextBuilder,
+        feature::{BackendFeature, CheckUp},
+        macros::BackendContext,
         mapper::SomeBackendContextBuilderMapper,
     },
     envelope::{
@@ -24,7 +26,10 @@ use email::{
         Id, SingleId,
     },
     flag::{add::AddFlags, remove::RemoveFlags, set::SetFlags, Flag, Flags},
-    folder::list::ListFolders,
+    folder::{
+        add::AddFolder, delete::DeleteFolder, expunge::ExpungeFolder, list::ListFolders,
+        purge::PurgeFolder,
+    },
     message::{
         add::AddMessage,
         copy::CopyMessages,
@@ -205,6 +210,30 @@ impl ContextBuilder {
 impl BackendContextBuilder for ContextBuilder {
     type Context = Context;
 
+    fn check_up(&self) -> Option<BackendFeature<Self::Context, dyn CheckUp>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.check_up_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.check_up_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.check_up_with_some(&self.notmuch),
+        }
+    }
+
+    fn add_folder(&self) -> Option<BackendFeature<Self::Context, dyn AddFolder>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.add_folder_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.add_folder_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.add_folder_with_some(&self.notmuch),
+        }
+    }
+
     fn list_folders(&self) -> Option<BackendFeature<Self::Context, dyn ListFolders>> {
         match self.backend.as_ref()? {
             config::Backend::None => None,
@@ -214,6 +243,42 @@ impl BackendContextBuilder for ContextBuilder {
             config::Backend::Maildir(_) => self.list_folders_with_some(&self.maildir),
             #[cfg(feature = "notmuch")]
             config::Backend::Notmuch(_) => self.list_folders_with_some(&self.notmuch),
+        }
+    }
+
+    fn expunge_folder(&self) -> Option<BackendFeature<Self::Context, dyn ExpungeFolder>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.expunge_folder_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.expunge_folder_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.expunge_folder_with_some(&self.notmuch),
+        }
+    }
+
+    fn purge_folder(&self) -> Option<BackendFeature<Self::Context, dyn PurgeFolder>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.purge_folder_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.purge_folder_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.purge_folder_with_some(&self.notmuch),
+        }
+    }
+
+    fn delete_folder(&self) -> Option<BackendFeature<Self::Context, dyn DeleteFolder>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.delete_folder_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.delete_folder_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.delete_folder_with_some(&self.notmuch),
         }
     }
 
@@ -229,15 +294,51 @@ impl BackendContextBuilder for ContextBuilder {
         }
     }
 
-    fn get_messages(&self) -> Option<BackendFeature<Self::Context, dyn GetMessages>> {
+    fn thread_envelopes(&self) -> Option<BackendFeature<Self::Context, dyn ThreadEnvelopes>> {
         match self.backend.as_ref()? {
             config::Backend::None => None,
             #[cfg(feature = "imap")]
-            config::Backend::Imap(_) => self.get_messages_with_some(&self.imap),
+            config::Backend::Imap(_) => self.thread_envelopes_with_some(&self.imap),
             #[cfg(feature = "maildir")]
-            config::Backend::Maildir(_) => self.get_messages_with_some(&self.maildir),
+            config::Backend::Maildir(_) => self.thread_envelopes_with_some(&self.maildir),
             #[cfg(feature = "notmuch")]
-            config::Backend::Notmuch(_) => self.get_messages_with_some(&self.notmuch),
+            config::Backend::Notmuch(_) => self.thread_envelopes_with_some(&self.notmuch),
+        }
+    }
+
+    fn add_flags(&self) -> Option<BackendFeature<Self::Context, dyn AddFlags>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.add_flags_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.add_flags_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.add_flags_with_some(&self.notmuch),
+        }
+    }
+
+    fn set_flags(&self) -> Option<BackendFeature<Self::Context, dyn SetFlags>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.set_flags_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.set_flags_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.set_flags_with_some(&self.notmuch),
+        }
+    }
+
+    fn remove_flags(&self) -> Option<BackendFeature<Self::Context, dyn RemoveFlags>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.remove_flags_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.remove_flags_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.remove_flags_with_some(&self.notmuch),
         }
     }
 
@@ -260,6 +361,18 @@ impl BackendContextBuilder for ContextBuilder {
             config::SendingBackend::Smtp(_) => self.send_message_with_some(&self.smtp),
             #[cfg(feature = "sendmail")]
             config::SendingBackend::Sendmail(_) => self.send_message_with_some(&self.sendmail),
+        }
+    }
+
+    fn get_messages(&self) -> Option<BackendFeature<Self::Context, dyn GetMessages>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.get_messages_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.get_messages_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.get_messages_with_some(&self.notmuch),
         }
     }
 
