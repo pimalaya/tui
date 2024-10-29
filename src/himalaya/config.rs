@@ -6,6 +6,7 @@ use std::{
     sync::Arc,
 };
 
+use async_trait::async_trait;
 use color_eyre::Result;
 use comfy_table::{presets, Attribute, Cell, ContentArrangement, Row, Table};
 use crossterm::{
@@ -107,7 +108,7 @@ impl HimalayaTomlConfig {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
     type AccountConfig = HimalayaTomlAccountConfig;
 

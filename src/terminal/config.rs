@@ -10,8 +10,8 @@ use toml::Value;
 use crate::{Error, Result};
 
 #[async_trait]
-pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
-    type AccountConfig: Into<AccountConfig>;
+pub trait TomlConfig: for<'de> Deserialize<'de> {
+    type AccountConfig;
 
     fn project_name() -> &'static str;
 
@@ -19,7 +19,7 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
     fn get_account_config(&self, name: &str) -> Option<(String, Self::AccountConfig)>;
 
     #[cfg(feature = "wizard")]
-    async fn from_wizard(path: &std::path::Path) -> Result<Self>;
+    async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self>;
 
     /// Read and parse the TOML configuration at the given paths
     ///
@@ -90,7 +90,9 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
             0 => Self::from_default_paths().await,
             _ if paths[0].exists() => Self::from_paths(paths),
             #[cfg(feature = "wizard")]
-            _ => Self::from_wizard(&paths[0]).await,
+            _ => Self::from_wizard(&paths[0])
+                .await
+                .map_err(Error::CreateTomlConfigFromWizardError),
             #[cfg(not(feature = "wizard"))]
             _ => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
@@ -101,7 +103,9 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
         match Self::first_valid_default_path() {
             Some(path) => Self::from_paths(&[path]),
             #[cfg(feature = "wizard")]
-            None => Self::from_wizard(&Self::default_path()?).await,
+            None => Self::from_wizard(&Self::default_path()?)
+                .await
+                .map_err(Error::CreateTomlConfigFromWizardError),
             #[cfg(not(feature = "wizard"))]
             None => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
@@ -179,7 +183,10 @@ pub trait TomlConfig: Into<Config> + for<'de> Deserialize<'de> {
     fn into_account_configs(
         self,
         account_name: Option<&str>,
-    ) -> Result<(Self::AccountConfig, AccountConfig)> {
+    ) -> Result<(Self::AccountConfig, AccountConfig)>
+    where
+        Self: Into<Config>,
+    {
         let (account_name, toml_account_config) = self.to_toml_account_config(account_name)?;
 
         let config: Config = self.into();
