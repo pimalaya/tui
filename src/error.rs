@@ -5,6 +5,13 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[cfg(feature = "wizard")]
+    #[error("cannot create TOML config parent directory at {1}")]
+    CreateTomlConfigParentDirectoryError(#[source] std::io::Error, std::path::PathBuf),
+    #[cfg(feature = "wizard")]
+    #[error("cannot write TOML config at {1}")]
+    WriteTomlConfigError(#[source] std::io::Error, std::path::PathBuf),
+
     #[cfg(feature = "config")]
     #[error("cannot create TOML config from invalid or missing paths")]
     CreateTomlConfigFromInvalidPathsError,

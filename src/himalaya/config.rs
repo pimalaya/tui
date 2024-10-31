@@ -110,13 +110,13 @@ impl HimalayaTomlConfig {
 
 #[async_trait]
 impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
-    type AccountConfig = HimalayaTomlAccountConfig;
+    type TomlAccountConfig = HimalayaTomlAccountConfig;
 
     fn project_name() -> &'static str {
         "himalaya"
     }
 
-    fn get_default_account_config(&self) -> Option<(String, Self::AccountConfig)> {
+    fn get_default_account_config(&self) -> Option<(String, Self::TomlAccountConfig)> {
         self.accounts.iter().find_map(|(name, account)| {
             account
                 .default
@@ -125,24 +125,22 @@ impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
         })
     }
 
-    fn get_account_config(&self, name: &str) -> Option<(String, Self::AccountConfig)> {
+    fn get_account_config(&self, name: &str) -> Option<(String, Self::TomlAccountConfig)> {
         self.accounts
             .get(name)
             .map(|account| (name.to_owned(), account.clone()))
     }
 
     #[cfg(feature = "wizard")]
-    async fn from_wizard(path: &std::path::Path) -> crate::Result<Self> {
-        super::wizard::confirm_or_exit(path)?;
-        let config = super::wizard::run(path).await?;
-
-        Ok(config)
+    async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self> {
+        crate::terminal::wizard::confirm_or_exit(path)?;
+        Ok(super::wizard::run(path).await?)
     }
 
     fn to_toml_account_config(
         &self,
         account_name: Option<&str>,
-    ) -> crate::Result<(String, Self::AccountConfig)> {
+    ) -> crate::Result<(String, Self::TomlAccountConfig)> {
         #[allow(unused_mut)]
         let (name, mut config) = match account_name {
             Some("default") | Some("") | None => self

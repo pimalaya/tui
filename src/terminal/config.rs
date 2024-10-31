@@ -11,12 +11,12 @@ use crate::{Error, Result};
 
 #[async_trait]
 pub trait TomlConfig: for<'de> Deserialize<'de> {
-    type AccountConfig;
+    type TomlAccountConfig;
 
     fn project_name() -> &'static str;
 
-    fn get_default_account_config(&self) -> Option<(String, Self::AccountConfig)>;
-    fn get_account_config(&self, name: &str) -> Option<(String, Self::AccountConfig)>;
+    fn get_default_account_config(&self) -> Option<(String, Self::TomlAccountConfig)>;
+    fn get_account_config(&self, name: &str) -> Option<(String, Self::TomlAccountConfig)>;
 
     #[cfg(feature = "wizard")]
     async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self>;
@@ -144,10 +144,27 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     }
 
     #[cfg(feature = "wizard")]
-    fn pretty_serialize(&self) -> Result<String>
+    fn set_table_dotted(table: &mut toml_edit::Table) {
+        let keys: Vec<String> = table.iter().map(|(key, _)| key.to_string()).collect();
+
+        for ref key in keys {
+            if let Some(table) = table.get_mut(key).unwrap().as_table_mut() {
+                table.set_dotted(true);
+                Self::set_table_dotted(table)
+            }
+        }
+    }
+
+    #[cfg(feature = "wizard")]
+    fn write(&self, path: &std::path::Path) -> Result<()>
     where
         Self: serde::Serialize,
     {
+        use crate::terminal::prompt;
+
+        let path = prompt::path("Where to save the configuration?", Some(path))?;
+        println!("Writing configuration at {}…", path.display());
+
         let mut doc: toml_edit::DocumentMut = toml::to_string(&self)
             .map_err(Error::SerializeTomlConfigError)?
             .parse()
@@ -157,19 +174,25 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
             if let Some(table) = item.as_table_mut() {
                 table.iter_mut().for_each(|(_, item)| {
                     if let Some(table) = item.as_table_mut() {
-                        set_table_dotted(table);
+                        Self::set_table_dotted(table);
                     }
                 })
             }
         });
 
-        Ok(doc.to_string())
+        fs::create_dir_all(path.parent().unwrap_or(&path))
+            .map_err(|err| Error::CreateTomlConfigParentDirectoryError(err, path.clone()))?;
+        fs::write(&path, doc.to_string())
+            .map_err(|err| Error::WriteTomlConfigError(err, path.clone()))?;
+
+        println!("Done! Exiting the wizard…");
+        Ok(())
     }
 
     fn to_toml_account_config(
         &self,
         account_name: Option<&str>,
-    ) -> Result<(String, Self::AccountConfig)> {
+    ) -> Result<(String, Self::TomlAccountConfig)> {
         match account_name {
             Some("default") | Some("") | None => self
                 .get_default_account_config()
@@ -183,7 +206,7 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     fn into_account_configs(
         self,
         account_name: Option<&str>,
-    ) -> Result<(Self::AccountConfig, AccountConfig)>
+    ) -> Result<(Self::TomlAccountConfig, AccountConfig)>
     where
         Self: Into<Config>,
     {
@@ -195,17 +218,5 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
             .map_err(|err| Error::BuildAccountConfigError(err, account_name))?;
 
         Ok((toml_account_config, account_config))
-    }
-}
-
-#[cfg(feature = "wizard")]
-fn set_table_dotted(table: &mut toml_edit::Table) {
-    let keys: Vec<String> = table.iter().map(|(key, _)| key.to_string()).collect();
-
-    for ref key in keys {
-        if let Some(table) = table.get_mut(key).unwrap().as_table_mut() {
-            table.set_dotted(true);
-            set_table_dotted(table)
-        }
     }
 }

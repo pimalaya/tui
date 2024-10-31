@@ -1,9 +1,9 @@
-use std::{fmt, fs, path::Path, process::exit};
+use std::{fmt, path::Path};
 
 use super::config::*;
 use crate::{
     terminal::{config::TomlConfig, print, prompt, wizard},
-    Error, Result,
+    Result,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -75,16 +75,6 @@ const SEND_MESSAGE_BACKEND_KINDS: &[SendingBackendKind] = &[
     #[cfg(feature = "sendmail")]
     SendingBackendKind::Sendmail,
 ];
-
-pub fn confirm_or_exit(path: &Path) -> Result<()> {
-    print::warn(format!("Cannot find configuration at {}.", path.display()));
-
-    if !prompt::bool("Would you like to create one with the wizard?", true)? {
-        exit(0);
-    }
-
-    Ok(())
-}
 
 pub async fn run(path: impl AsRef<Path>) -> Result<HimalayaTomlConfig> {
     print::section("Configuring your default account");
@@ -183,15 +173,7 @@ pub async fn run(path: impl AsRef<Path>) -> Result<HimalayaTomlConfig> {
     };
 
     config.accounts.insert(account_name, account_config);
+    config.write(path.as_ref())?;
 
-    let path = prompt::path("Where to save the configuration?", Some(path))?;
-    println!("Writing configuration to {}…", path.display());
-
-    let toml = config.pretty_serialize()?;
-    fs::create_dir_all(path.parent().unwrap_or(&path))
-        .map_err(|err| Error::CreateConfigFileError(err, path.clone()))?;
-    fs::write(&path, toml).map_err(|err| Error::WriteConfigFileError(err, path.clone()))?;
-
-    println!("Done! Exiting the wizard…");
     Ok(config)
 }
