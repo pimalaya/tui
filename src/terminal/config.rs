@@ -2,7 +2,6 @@ use std::{fs, path::PathBuf};
 
 use async_trait::async_trait;
 use dirs::{config_dir, home_dir};
-use email::{account::config::AccountConfig, config::Config};
 use serde::Deserialize;
 use serde_toml_merge::merge;
 use toml::Value;
@@ -201,22 +200,5 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
                 .get_account_config(name)
                 .ok_or_else(|| Error::GetAccountConfigError(name.to_owned())),
         }
-    }
-
-    fn into_account_configs(
-        self,
-        account_name: Option<&str>,
-    ) -> Result<(Self::TomlAccountConfig, AccountConfig)>
-    where
-        Self: Into<Config>,
-    {
-        let (account_name, toml_account_config) = self.to_toml_account_config(account_name)?;
-
-        let config: Config = self.into();
-        let account_config = config
-            .account(&account_name)
-            .map_err(|err| Error::BuildAccountConfigError(err, account_name))?;
-
-        Ok((toml_account_config, account_config))
     }
 }
