@@ -205,15 +205,15 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     fn into_account_configs<C, A>(
         self,
         account_name: Option<&str>,
-        get_account: impl Fn(C) -> Option<A>,
+        get_account: impl Fn(&C, &str) -> Option<A>,
     ) -> Result<(Self::TomlAccountConfig, A)>
     where
         Self: Into<C>,
     {
         let (account_name, toml_account_config) = self.to_toml_account_config(account_name)?;
 
-        let account_config =
-            get_account(self.into()).ok_or_else(|| Error::BuildAccountConfigError(account_name))?;
+        let account_config = get_account(&self.into(), account_name.as_str())
+            .ok_or_else(|| Error::BuildAccountConfigError(account_name))?;
 
         Ok((toml_account_config, account_config))
     }
