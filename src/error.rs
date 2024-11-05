@@ -81,6 +81,9 @@ pub enum Error {
     #[error("cannot parse serialized TOML config as document")]
     ParseSerializedTomlConfigError(#[source] toml_edit::TomlError),
     #[cfg(feature = "config")]
+    #[error("cannot build final configuration for account {0}")]
+    BuildAccountConfigError(String),
+    #[cfg(feature = "config")]
     #[error("cannot find default account configuration")]
     GetDefaultAccountConfigError,
     #[cfg(feature = "config")]
