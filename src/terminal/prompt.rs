@@ -44,6 +44,14 @@ pub fn secret(prompt: impl AsRef<str>) -> Result<String> {
         .map_err(Error::PromptSecretError)
 }
 
+pub fn some_secret(prompt: impl AsRef<str>) -> Result<Option<String>> {
+    Password::new(prompt.as_ref())
+        .with_display_mode(PasswordDisplayMode::Masked)
+        .without_confirmation()
+        .prompt_skippable()
+        .map_err(Error::PromptSecretError)
+}
+
 pub fn password(prompt: impl AsRef<str>) -> Result<String> {
     Password::new(prompt.as_ref())
         .with_display_mode(PasswordDisplayMode::Masked)

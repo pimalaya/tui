@@ -130,10 +130,17 @@ pub async fn start(
 
             config.client_id = prompt::text("IMAP OAuth 2.0 client id:", None)?;
 
-            let client_secret = prompt::secret("IMAP OAuth 2.0 client secret:")?;
-            config.client_secret =
-                Secret::try_new_keyring_entry(format!("{account_name}-imap-oauth2-client-secret"))?;
-            config.client_secret.set_if_keyring(&client_secret).await?;
+            let client_secret = match prompt::some_secret("IMAP OAuth 2.0 client secret:")? {
+                None => None,
+                Some(raw) => {
+                    let secret = Secret::try_new_keyring_entry(format!(
+                        "{account_name}-imap-oauth2-client-secret"
+                    ))?;
+                    secret.set_if_keyring(&raw).await?;
+                    config.client_secret = Some(secret);
+                    Some(raw)
+                }
+            };
 
             config.redirect_scheme = Some(prompt::text(
                 "IMAP OAuth 2.0 redirect URL scheme:",
