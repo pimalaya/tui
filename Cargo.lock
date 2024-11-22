@@ -1068,16 +1068,7 @@ version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
 dependencies = [
- "dirs-sys 0.3.7",
-]
-
-[[package]]
-name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys 0.4.1",
+ "dirs-sys",
 ]
 
 [[package]]
@@ -1089,18 +1080,6 @@ dependencies = [
  "libc",
  "redox_users",
  "winapi",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users",
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1188,7 +1167,7 @@ dependencies = [
 [[package]]
 name = "email-lib"
 version = "0.26.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1794,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "http-lib"
 version = "0.1.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "thiserror 1.0.69",
  "tokio",
@@ -1998,7 +1977,7 @@ dependencies = [
 [[package]]
 name = "imap-client"
 version = "0.1.5"
-source = "git+https://github.com/pimalaya/imap-client#39d0217a58637a5f7e017e12bd8845f562bfd5b6"
+source = "git+https://github.com/pimalaya/imap-client#3016ffb23a474d0fdce0392d497958e092f590b8"
 dependencies = [
  "futures-util",
  "imap-next",
@@ -2028,7 +2007,7 @@ dependencies = [
 [[package]]
 name = "imap-next"
 version = "0.3.0"
-source = "git+https://github.com/soywod/imap-next?branch=jakoschiko_futures-stream-without-split#19e850f0c7ad7bf6e643175c90d88cf2f3877312"
+source = "git+https://github.com/soywod/imap-next?branch=jakoschiko_futures-stream-without-split#c26634b4efc9dfcab0af08943fdcb92ed273a2f3"
 dependencies = [
  "futures-util",
  "imap-codec",
@@ -2210,7 +2189,7 @@ dependencies = [
 [[package]]
 name = "keyring-lib"
 version = "1.0.2"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "keyring",
  "once_cell",
@@ -2496,7 +2475,7 @@ dependencies = [
 [[package]]
 name = "mml-lib"
 version = "1.1.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "async-recursion",
  "chumsky",
@@ -2695,7 +2674,7 @@ dependencies = [
 [[package]]
 name = "oauth-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "http-lib",
  "oauth2",
@@ -2743,12 +2722,6 @@ name = "openssl-probe"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
-
-[[package]]
-name = "option-ext"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "ordered-stream"
@@ -2968,7 +2941,7 @@ dependencies = [
 [[package]]
 name = "pgp-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "async-recursion",
  "futures",
@@ -2992,7 +2965,7 @@ dependencies = [
  "color-eyre",
  "comfy-table",
  "crossterm 0.27.0",
- "dirs 4.0.0",
+ "dirs",
  "email-lib",
  "email_address",
  "inquire",
@@ -3144,7 +3117,7 @@ dependencies = [
 [[package]]
 name = "process-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "serde",
  "thiserror 1.0.69",
@@ -3574,7 +3547,7 @@ dependencies = [
 [[package]]
 name = "secret-lib"
 version = "1.0.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "keyring-lib",
  "process-lib",
@@ -3776,7 +3749,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da03fa3b94cc19e3ebfc88c4229c49d8f08cdbd1228870a45f0ffdf84988e14b"
 dependencies = [
  "bstr",
- "dirs 5.0.1",
+ "dirs",
  "os_str_bytes",
 ]
 
@@ -3909,7 +3882,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 [[package]]
 name = "start-tls"
 version = "0.1.0"
-source = "git+https://github.com/pimalaya/core#820b9663c844a0b87fbe707e6ed1026ae053940d"
+source = "git+https://github.com/pimalaya/core#3e294453e5a34475e5197c1ccf3b534d221ad26f"
 dependencies = [
  "futures-util",
  "tracing",
