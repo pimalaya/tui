@@ -1,6 +1,6 @@
 [package]
 name = "pimalaya-tui"
-description = "Collection of crossterm widgets shared accross Pimalaya terminal-based projects"
+description = "Collection of crossterm widgets shared accross Pimalaya projects"
 version = "0.1.0"
 authors = ["soywod <clement.douin@posteo.net>"]
 edition = "2021"
@@ -12,29 +12,31 @@ documentation = "https://docs.rs/pimalaya-tui/latest/pimalaya_tui/"
 repository = "https://github.com/pimalaya/tui/"
 
 [package.metadata.docs.rs]
-features = ["himalaya", "imap", "maildir", "smtp", "sendmail", "pgp-commands", "pgp-gpg", "cli", "email", "path", "config", "oauth2", "sled", "tracing", "wizard"]
+all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = [
-  #"himalaya",
-  #"imap",
-  #"maildir",
-  #"notmuch",
-  #"smtp",
-  #"sendmail",
-  #"pgp-commands",
-  #"pgp-gpg",
-  #"pgp-native",
-  #"cli",
-  #"email",
-  #"path",
-  #"config",
-  #"keyring",
-  #"oauth2",
-  #"sled",
-  #"tracing",
-  #"wizard",
+default = []
+full = [
+  "himalaya",
+  "imap",
+  "maildir",
+  "notmuch",
+  "smtp",
+  "sendmail",
+  "pgp-commands",
+  "pgp-gpg",
+  "pgp-native",
+  "cli",
+  "email",
+  "path",
+  "config",
+  "keyring",
+  "oauth2",
+  "sled",
+  "tracing",
+  "wizard",
+  "build-envs",
 ]
 
 # Pimalaya projects
@@ -72,6 +74,10 @@ keyring = ["email-lib?/keyring", "secret-lib?/keyring"]
 oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
 tracing = ["dep:color-eyre", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
 wizard = ["dep:tokio", "email-lib?/autoconfig", "config"]
+build-envs = ["dep:git2", "dep:serde", "dep:toml"]
+
+[dev-dependencies]
+pimalaya-tui = { path = ".", features = ["full"] }
 
 [dependencies]
 async-trait = { version = "0.1", optional = true }
@@ -82,6 +88,7 @@ crossterm = { version = "0.27", features = ["serde"] }
 dirs = { version = "4", optional = true }
 email-lib = { version = "=0.26", optional = true, default-features = false, features = ["tokio-rustls"] }
 email_address = { version = "0.2", optional = true, default-features = false }
+git2 = { version = "0.19", optional = true, default-features = false }
 inquire = "0.7"
 md5 = "0.7"
 mml-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls", "compiler", "interpreter", "derive"] }
@@ -104,6 +111,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional =
 
 [patch.crates-io]
 email-lib = { git = "https://github.com/pimalaya/core" }
+keyring-lib = { git = "https://github.com/pimalaya/core" }
 mml-lib = { git = "https://github.com/pimalaya/core" }
 oauth-lib = { git = "https://github.com/pimalaya/core" }
 process-lib = { git = "https://github.com/pimalaya/core" }

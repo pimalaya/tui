@@ -1,3 +1,5 @@
+#[cfg(feature = "build-envs")]
+pub mod build;
 mod error;
 #[cfg(feature = "himalaya")]
 pub mod himalaya;
