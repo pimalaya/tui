@@ -10,3 +10,25 @@ pub fn path_parser(path: &str) -> Result<PathBuf, String> {
         .map(canonicalize::path)
         .map_err(|err| err.to_string())
 }
+
+#[macro_export]
+macro_rules! long_version {
+    () => {
+        concat!(
+            "v",
+            env!("CARGO_PKG_VERSION"),
+            " ",
+            env!("CARGO_FEATURES"),
+            "\nbuild: ",
+            env!("CARGO_CFG_TARGET_OS"),
+            " ",
+            env!("CARGO_CFG_TARGET_ENV"),
+            " ",
+            env!("CARGO_CFG_TARGET_ARCH"),
+            "\ngit: ",
+            env!("GIT_DESCRIBE"),
+            ", rev ",
+            env!("GIT_REV"),
+        )
+    };
+}
