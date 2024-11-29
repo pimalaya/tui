@@ -16,7 +16,7 @@ use serde::Deserialize;
 /// available features (omitting "default"). It then checks for
 /// enabled features via `CARGO_FEATURE_<name>` to finally collect
 /// them into a string.
-fn features_env(cargo: &str) {
+pub fn features_env(cargo: &str) {
     #[derive(Deserialize)]
     struct Config {
         features: HashMap<String, Vec<String>>,
@@ -52,7 +52,7 @@ fn features_env(cargo: &str) {
 ///
 /// This function basically forwards existing cargo environments
 /// related to the target platform.
-fn target_envs() {
+pub fn target_envs() {
     forward_env("CARGO_CFG_TARGET_OS");
     forward_env("CARGO_CFG_TARGET_ENV");
     forward_env("CARGO_CFG_TARGET_ARCH");
@@ -63,7 +63,7 @@ fn target_envs() {
 /// This function basically tries to forward existing git environment
 /// variables. In case of failure, it tries to build them using
 /// [`git2`].
-fn git_envs() {
+pub fn git_envs() {
     let git = Repository::open(".").ok();
 
     if try_forward_env("GIT_DESCRIBE").is_err() {
