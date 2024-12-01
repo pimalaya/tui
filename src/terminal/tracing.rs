@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, io::stderr};
 
 use color_eyre::{eyre::Result, Section};
 use tracing_error::ErrorLayer;
@@ -11,8 +11,6 @@ pub struct Tracing {
 
 impl Tracing {
     pub fn install() -> Result<Self> {
-        let fmt_layer = fmt::layer();
-
         let (filter_layer, current_filter) = match EnvFilter::try_from_default_env() {
             Err(_) => (EnvFilter::try_new("off").unwrap(), LevelFilter::OFF),
             Ok(layer) => {
@@ -21,15 +19,11 @@ impl Tracing {
             }
         };
 
-        let registry = tracing_subscriber::registry()
+        tracing_subscriber::registry()
+            .with(fmt::layer().with_writer(stderr))
             .with(filter_layer)
-            .with(ErrorLayer::default());
-
-        if current_filter == LevelFilter::OFF {
-            registry.with(fmt_layer.without_time()).init()
-        } else {
-            registry.with(fmt_layer).init()
-        }
+            .with(ErrorLayer::default())
+            .init();
 
         if env::var("RUST_BACKTRACE").is_err() && current_filter == LevelFilter::TRACE {
             env::set_var("RUST_BACKTRACE", "1");
