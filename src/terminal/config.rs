@@ -8,6 +8,8 @@ use toml::Value;
 
 use crate::{Error, Result};
 
+use super::wizard;
+
 #[async_trait]
 pub trait TomlConfig: for<'de> Deserialize<'de> {
     type TomlAccountConfig;
@@ -89,9 +91,12 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
             0 => Self::from_default_paths().await,
             _ if paths[0].exists() => Self::from_paths(paths),
             #[cfg(feature = "wizard")]
-            _ => Self::from_wizard(&paths[0])
-                .await
-                .map_err(Error::CreateTomlConfigFromWizardError),
+            _ => {
+                wizard::confirm_or_exit(&paths[0])?;
+                Self::from_wizard(&paths[0])
+                    .await
+                    .map_err(Error::CreateTomlConfigFromWizardError)
+            }
             #[cfg(not(feature = "wizard"))]
             _ => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
@@ -102,9 +107,13 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
         match Self::first_valid_default_path() {
             Some(path) => Self::from_paths(&[path]),
             #[cfg(feature = "wizard")]
-            None => Self::from_wizard(&Self::default_path()?)
-                .await
-                .map_err(Error::CreateTomlConfigFromWizardError),
+            None => {
+                let path = Self::default_path()?;
+                wizard::confirm_or_exit(&path)?;
+                Self::from_wizard(&path)
+                    .await
+                    .map_err(Error::CreateTomlConfigFromWizardError)
+            }
             #[cfg(not(feature = "wizard"))]
             None => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }

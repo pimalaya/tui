@@ -133,8 +133,7 @@ impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
 
     #[cfg(feature = "wizard")]
     async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self> {
-        crate::terminal::wizard::confirm_or_exit(path)?;
-        Ok(super::wizard::run(path).await?)
+        Ok(super::wizard::edit(path, Self::default(), None, Default::default()).await?)
     }
 
     fn to_toml_account_config(

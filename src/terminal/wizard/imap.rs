@@ -22,15 +22,15 @@ static ENCRYPTIONS: [ImapEncryptionKind; 3] = [
 ];
 
 static SECRETS: &[&str] = &[
+    RAW,
     #[cfg(feature = "keyring")]
     KEYRING,
-    RAW,
     CMD,
 ];
 
+const RAW: &str = "Ask my password, then save it in the configuration file (not safe)";
 #[cfg(feature = "keyring")]
 const KEYRING: &str = "Ask my password, then save it in my system's global keyring";
-const RAW: &str = "Ask my password, then save it in the configuration file (not safe)";
 const CMD: &str = "Ask me a shell command that exposes my password";
 
 pub async fn start(
