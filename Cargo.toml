@@ -37,6 +37,7 @@ full = [
   "tracing",
   "wizard",
   "build-envs",
+  "rustls",
 ]
 
 # Pimalaya projects
@@ -66,6 +67,11 @@ cli = ["dep:clap", "dep:color-eyre", "dep:serde", "dep:serde_json", "dep:shellex
 #
 email = ["dep:email_address"]
 path = ["dep:shellexpand-utils"]
+
+# TLS
+#
+rustls = ["email-lib?/rustls"]
+native-tls = ["email-lib?/native-tls"]
 
 # Other shared stuff
 #
