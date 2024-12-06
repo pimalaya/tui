@@ -37,6 +37,7 @@ use email::{
         get::GetMessages,
         peek::PeekMessages,
         r#move::MoveMessages,
+        remove::RemoveMessages,
         send::{SendMessage, SendMessageThenSaveCopy},
         Messages,
     },
@@ -412,6 +413,18 @@ impl BackendContextBuilder for ContextBuilder {
         }
     }
 
+    fn remove_messages(&self) -> Option<BackendFeature<Self::Context, dyn RemoveMessages>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.remove_messages_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.remove_messages_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.remove_messages_with_some(&self.notmuch),
+        }
+    }
+
     async fn build(self) -> AnyResult<Self::Context> {
         #[cfg(feature = "imap")]
         let imap = match self.imap {
@@ -643,6 +656,14 @@ impl Backend {
         let id_mapper = self.build_id_mapper(folder, backend_kind)?;
         let ids = Id::multiple(id_mapper.get_ids(ids)?);
         self.backend.delete_messages(folder, &ids).await?;
+        Ok(())
+    }
+
+    pub async fn remove_messages(&self, folder: &str, ids: &[usize]) -> Result<()> {
+        let backend_kind = self.toml_account_config.backend.as_ref();
+        let id_mapper = self.build_id_mapper(folder, backend_kind)?;
+        let ids = Id::multiple(id_mapper.get_ids(ids)?);
+        self.backend.remove_messages(folder, &ids).await?;
         Ok(())
     }
 
