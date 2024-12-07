@@ -377,6 +377,18 @@ impl BackendContextBuilder for ContextBuilder {
         }
     }
 
+    fn peek_messages(&self) -> Option<BackendFeature<Self::Context, dyn PeekMessages>> {
+        match self.backend.as_ref()? {
+            config::Backend::None => None,
+            #[cfg(feature = "imap")]
+            config::Backend::Imap(_) => self.peek_messages_with_some(&self.imap),
+            #[cfg(feature = "maildir")]
+            config::Backend::Maildir(_) => self.peek_messages_with_some(&self.maildir),
+            #[cfg(feature = "notmuch")]
+            config::Backend::Notmuch(_) => self.peek_messages_with_some(&self.notmuch),
+        }
+    }
+
     fn copy_messages(&self) -> Option<BackendFeature<Self::Context, dyn CopyMessages>> {
         match self.backend.as_ref()? {
             config::Backend::None => None,
@@ -605,19 +617,19 @@ impl Backend {
         Ok(id)
     }
 
-    pub async fn peek_messages(&self, folder: &str, ids: &[usize]) -> Result<Messages> {
-        let backend_kind = self.toml_account_config.backend.as_ref();
-        let id_mapper = self.build_id_mapper(folder, backend_kind)?;
-        let ids = Id::multiple(id_mapper.get_ids(ids)?);
-        let msgs = self.backend.peek_messages(folder, &ids).await?;
-        Ok(msgs)
-    }
-
     pub async fn get_messages(&self, folder: &str, ids: &[usize]) -> Result<Messages> {
         let backend_kind = self.toml_account_config.backend.as_ref();
         let id_mapper = self.build_id_mapper(folder, backend_kind)?;
         let ids = Id::multiple(id_mapper.get_ids(ids)?);
         let msgs = self.backend.get_messages(folder, &ids).await?;
+        Ok(msgs)
+    }
+
+    pub async fn peek_messages(&self, folder: &str, ids: &[usize]) -> Result<Messages> {
+        let backend_kind = self.toml_account_config.backend.as_ref();
+        let id_mapper = self.build_id_mapper(folder, backend_kind)?;
+        let ids = Id::multiple(id_mapper.get_ids(ids)?);
+        let msgs = self.backend.peek_messages(folder, &ids).await?;
         Ok(msgs)
     }
 
