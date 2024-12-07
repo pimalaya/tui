@@ -6,7 +6,7 @@ use email::{
 use email::{
     account::config::passwd::PasswordConfig,
     autoconfig::config::{AutoConfig, SecurityType, ServerType},
-    imap::config::{ImapAuthConfig, ImapConfig, ImapEncryptionKind, ImapTlsProvider},
+    imap::config::{ImapAuthConfig, ImapConfig, ImapEncryptionKind},
 };
 use email_address::EmailAddress;
 #[cfg(feature = "oauth2")]
@@ -21,12 +21,12 @@ static ENCRYPTIONS: [ImapEncryptionKind; 3] = [
     ImapEncryptionKind::None,
 ];
 
-static TLS_PROVIDERS: &[ImapTlsProvider] = &[
-    #[cfg(feature = "rustls")]
-    ImapTlsProvider::Rustls,
-    #[cfg(feature = "native-tls")]
-    ImapTlsProvider::NativeTls,
-];
+// static TLS_PROVIDERS: &[ImapTlsProvider] = &[
+//     #[cfg(feature = "rustls")]
+//     ImapTlsProvider::Rustls,
+//     #[cfg(feature = "native-tls")]
+//     ImapTlsProvider::NativeTls,
+// ];
 
 static SECRETS: &[&str] = &[
     RAW,
@@ -95,15 +95,15 @@ pub async fn start(
         ImapEncryptionKind::None => 143,
     };
 
-    let tls_provider = if encryption != ImapEncryptionKind::None {
-        prompt::item(
-            "IMAP TLS provider:",
-            TLS_PROVIDERS.to_owned(),
-            Some(ImapTlsProvider::default()),
-        )?
-    } else {
-        ImapTlsProvider::None
-    };
+    // let tls_provider = if encryption != ImapEncryptionKind::None {
+    //     prompt::item(
+    //         "IMAP TLS provider:",
+    //         TLS_PROVIDERS.to_owned(),
+    //         Some(ImapTlsProvider::default()),
+    //     )?
+    // } else {
+    //     ImapTlsProvider::None
+    // };
 
     let port = prompt::u16("IMAP port:", Some(default_port))?;
 
@@ -276,7 +276,7 @@ pub async fn start(
         host,
         port,
         encryption: Some(encryption),
-        tls_provider,
+        tls_provider: Default::default(),
         login,
         auth,
         watch: None,
