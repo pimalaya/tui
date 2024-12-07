@@ -8,6 +8,7 @@ use toml::Value;
 
 use crate::{Error, Result};
 
+#[cfg(feature = "wizard")]
 use super::wizard;
 
 #[async_trait]
