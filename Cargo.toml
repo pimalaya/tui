@@ -46,10 +46,10 @@ himalaya = ["dep:async-trait", "dep:comfy-table", "dep:email-lib", "dep:mml-lib"
 
 # Email backends
 #
-imap = ["dep:email-lib", "dep:secret-lib", "email", "email-lib?/autoconfig", "email-lib?/imap"]
+imap = ["dep:email-lib", "dep:secret-lib", "dep:once_cell", "email", "email-lib?/autoconfig", "email-lib?/imap"]
 maildir = ["dep:email-lib", "dep:dirs", "email-lib?/maildir", "path"]
 notmuch = ["dep:email-lib", "email-lib?/notmuch", "path"]
-smtp = ["dep:email-lib", "dep:secret-lib", "email", "email-lib?/autoconfig", "email-lib?/smtp"]
+smtp = ["dep:email-lib", "dep:secret-lib", "dep:once_cell", "email", "email-lib?/autoconfig", "email-lib?/smtp"]
 sendmail = ["dep:email-lib", "email-lib?/sendmail"]
 
 # PGP backends
@@ -99,6 +99,7 @@ inquire = "0.7"
 md5 = "0.7"
 mml-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls", "compiler", "interpreter", "derive"] }
 oauth-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls"] }
+once_cell = { version = "1.20", optional = true }
 petgraph = { version = "0.6", optional = true }
 process-lib = { version = "1", optional = true, features = ["tokio", "derive"] }
 secret-lib = { version = "1", optional = true, default-features = false, features = ["tokio", "rustls", "command"] }

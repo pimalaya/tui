@@ -6,20 +6,24 @@ use email::{
 use email::{
     account::config::passwd::PasswordConfig,
     autoconfig::config::{AutoConfig, SecurityType, ServerType},
-    smtp::config::{SmtpAuthConfig, SmtpConfig, SmtpEncryptionKind},
+    smtp::config::{SmtpAuthConfig, SmtpConfig},
+    tls::Encryption,
 };
 use email_address::EmailAddress;
 #[cfg(feature = "oauth2")]
 use oauth::v2_0::{AuthorizationCodeGrant, Client};
+use once_cell::sync::Lazy;
 use secret::Secret;
 
 use crate::{terminal::prompt, Result};
 
-static ENCRYPTIONS: [SmtpEncryptionKind; 3] = [
-    SmtpEncryptionKind::Tls,
-    SmtpEncryptionKind::StartTls,
-    SmtpEncryptionKind::None,
-];
+static ENCRYPTIONS: Lazy<[Encryption; 3]> = Lazy::new(|| {
+    [
+        Encryption::Tls(Default::default()),
+        Encryption::StartTls(Default::default()),
+        Encryption::None,
+    ]
+});
 
 static SECRETS: &[&str] = &[
     RAW,
@@ -58,9 +62,9 @@ pub async fn start(
     let autoconfig_encryption = autoconfig_server
         .and_then(|smtp| {
             smtp.security_type().map(|encryption| match encryption {
-                SecurityType::Plain => SmtpEncryptionKind::None,
-                SecurityType::Starttls => SmtpEncryptionKind::StartTls,
-                SecurityType::Tls => SmtpEncryptionKind::Tls,
+                SecurityType::Plain => Encryption::None,
+                SecurityType::Starttls => Encryption::StartTls(Default::default()),
+                SecurityType::Tls => Encryption::Tls(Default::default()),
             })
         })
         .unwrap_or_default();
@@ -69,9 +73,9 @@ pub async fn start(
         .and_then(|config| config.port())
         .map(ToOwned::to_owned)
         .unwrap_or_else(|| match &autoconfig_encryption {
-            SmtpEncryptionKind::Tls => 993,
-            SmtpEncryptionKind::StartTls => 143,
-            SmtpEncryptionKind::None => 143,
+            Encryption::Tls(_) => 465,
+            Encryption::StartTls(_) => 587,
+            Encryption::None => 25,
         });
 
     let encryption = prompt::item(
@@ -82,9 +86,9 @@ pub async fn start(
 
     let default_port = match encryption {
         ref encryption if encryption == &autoconfig_encryption => autoconfig_port,
-        SmtpEncryptionKind::Tls => 993,
-        SmtpEncryptionKind::StartTls => 143,
-        SmtpEncryptionKind::None => 143,
+        Encryption::Tls(_) => 465,
+        Encryption::StartTls(_) => 587,
+        Encryption::None => 25,
     };
 
     let port = prompt::u16("SMTP port:", Some(default_port))?;
@@ -130,7 +134,7 @@ pub async fn start(
 
             config.client_id = prompt::text("SMTP OAuth 2.0 client id:", None)?;
 
-            let client_secret = match prompt::some_secret("IMAP OAuth 2.0 client secret:")? {
+            let client_secret = match prompt::some_secret("SMTP OAuth 2.0 client secret:")? {
                 None => None,
                 Some(raw) => {
                     let secret = Secret::try_new_keyring_entry(format!(

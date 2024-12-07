@@ -6,27 +6,24 @@ use email::{
 use email::{
     account::config::passwd::PasswordConfig,
     autoconfig::config::{AutoConfig, SecurityType, ServerType},
-    imap::config::{ImapAuthConfig, ImapConfig, ImapEncryptionKind},
+    imap::config::{ImapAuthConfig, ImapConfig},
+    tls::Encryption,
 };
 use email_address::EmailAddress;
 #[cfg(feature = "oauth2")]
 use oauth::v2_0::{AuthorizationCodeGrant, Client};
+use once_cell::sync::Lazy;
 use secret::Secret;
 
 use crate::{terminal::prompt, Result};
 
-static ENCRYPTIONS: [ImapEncryptionKind; 3] = [
-    ImapEncryptionKind::Tls,
-    ImapEncryptionKind::StartTls,
-    ImapEncryptionKind::None,
-];
-
-// static TLS_PROVIDERS: &[ImapTlsProvider] = &[
-//     #[cfg(feature = "rustls")]
-//     ImapTlsProvider::Rustls,
-//     #[cfg(feature = "native-tls")]
-//     ImapTlsProvider::NativeTls,
-// ];
+static ENCRYPTIONS: Lazy<[Encryption; 3]> = Lazy::new(|| {
+    [
+        Encryption::Tls(Default::default()),
+        Encryption::StartTls(Default::default()),
+        Encryption::None,
+    ]
+});
 
 static SECRETS: &[&str] = &[
     RAW,
@@ -66,9 +63,9 @@ pub async fn start(
     let autoconfig_encryption = autoconfig_server
         .and_then(|imap| {
             imap.security_type().map(|encryption| match encryption {
-                SecurityType::Plain => ImapEncryptionKind::None,
-                SecurityType::Starttls => ImapEncryptionKind::StartTls,
-                SecurityType::Tls => ImapEncryptionKind::Tls,
+                SecurityType::Plain => Encryption::None,
+                SecurityType::Starttls => Encryption::StartTls(Default::default()),
+                SecurityType::Tls => Encryption::Tls(Default::default()),
             })
         })
         .unwrap_or_default();
@@ -77,9 +74,9 @@ pub async fn start(
         .and_then(|config| config.port())
         .map(ToOwned::to_owned)
         .unwrap_or_else(|| match &autoconfig_encryption {
-            ImapEncryptionKind::Tls => 993,
-            ImapEncryptionKind::StartTls => 143,
-            ImapEncryptionKind::None => 143,
+            Encryption::Tls(_) => 993,
+            Encryption::StartTls(_) => 143,
+            Encryption::None => 143,
         });
 
     let encryption = prompt::item(
@@ -90,20 +87,10 @@ pub async fn start(
 
     let default_port = match encryption {
         ref encryption if encryption == &autoconfig_encryption => autoconfig_port,
-        ImapEncryptionKind::Tls => 993,
-        ImapEncryptionKind::StartTls => 143,
-        ImapEncryptionKind::None => 143,
+        Encryption::Tls(_) => 993,
+        Encryption::StartTls(_) => 143,
+        Encryption::None => 143,
     };
-
-    // let tls_provider = if encryption != ImapEncryptionKind::None {
-    //     prompt::item(
-    //         "IMAP TLS provider:",
-    //         TLS_PROVIDERS.to_owned(),
-    //         Some(ImapTlsProvider::default()),
-    //     )?
-    // } else {
-    //     ImapTlsProvider::None
-    // };
 
     let port = prompt::u16("IMAP port:", Some(default_port))?;
 
@@ -276,7 +263,6 @@ pub async fn start(
         host,
         port,
         encryption: Some(encryption),
-        tls_provider: Default::default(),
         login,
         auth,
         watch: None,
