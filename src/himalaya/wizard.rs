@@ -11,13 +11,13 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BackendKind {
-    None,
     #[cfg(feature = "imap")]
     Imap,
     #[cfg(feature = "maildir")]
     Maildir,
     #[cfg(feature = "notmuch")]
     Notmuch,
+    None,
 }
 
 impl fmt::Display for BackendKind {
@@ -26,35 +26,35 @@ impl fmt::Display for BackendKind {
             f,
             "{}",
             match self {
-                Self::None => "None",
                 #[cfg(feature = "imap")]
                 Self::Imap => "IMAP",
                 #[cfg(feature = "maildir")]
                 Self::Maildir => "Maildir",
                 #[cfg(feature = "notmuch")]
                 Self::Notmuch => "Notmuch",
+                Self::None => "None",
             }
         )
     }
 }
 
 const DEFAULT_BACKEND_KINDS: &[BackendKind] = &[
-    BackendKind::None,
     #[cfg(feature = "imap")]
     BackendKind::Imap,
     #[cfg(feature = "maildir")]
     BackendKind::Maildir,
     #[cfg(feature = "notmuch")]
     BackendKind::Notmuch,
+    BackendKind::None,
 ];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SendingBackendKind {
-    None,
     #[cfg(feature = "smtp")]
     Smtp,
     #[cfg(feature = "sendmail")]
     Sendmail,
+    None,
 }
 
 impl fmt::Display for SendingBackendKind {
@@ -63,22 +63,22 @@ impl fmt::Display for SendingBackendKind {
             f,
             "{}",
             match self {
-                Self::None => "None",
                 #[cfg(feature = "smtp")]
                 Self::Smtp => "SMTP",
                 #[cfg(feature = "sendmail")]
                 Self::Sendmail => "Sendmail",
+                Self::None => "None",
             }
         )
     }
 }
 
 const SEND_MESSAGE_BACKEND_KINDS: &[SendingBackendKind] = &[
-    SendingBackendKind::None,
     #[cfg(feature = "smtp")]
     SendingBackendKind::Smtp,
     #[cfg(feature = "sendmail")]
     SendingBackendKind::Sendmail,
+    SendingBackendKind::None,
 ];
 
 pub async fn edit(
