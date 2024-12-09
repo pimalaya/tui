@@ -1190,9 +1190,9 @@ dependencies = [
 
 [[package]]
 name = "email-lib"
-version = "0.26.1"
+version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74fd83e96f04fe280368a14664fc13350c9dbc17ba9e3b228f9629010ad6c70b"
+checksum = "8625e58d8fd41ac4f497ead618664d8ab7b86291cffbbf6feb2457c52561e721"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2783,9 +2783,9 @@ dependencies = [
 
 [[package]]
 name = "oauth-lib"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d936e2859cd8769d97a035df0886e0a8c487d916415b4ad3802ecd5a86664452"
+checksum = "5d4a367f5fbc5e9d1971e3dae045c7d6c8b1f9984691d2c1624882b40057f92a"
 dependencies = [
  "http-lib",
  "oauth2",
@@ -3114,7 +3114,7 @@ dependencies = [
 
 [[package]]
 name = "pimalaya-tui"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "async-trait",
  "clap",
