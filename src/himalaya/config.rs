@@ -430,9 +430,12 @@ impl ToString for Backend {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", tag = "type")]
 pub enum BackendDerive {
+    #[default]
+    None,
+
     #[cfg(feature = "imap")]
     Imap(ImapConfig),
     #[cfg(not(feature = "imap"))]
@@ -455,6 +458,8 @@ pub enum BackendDerive {
 impl From<BackendDerive> for Backend {
     fn from(backend: BackendDerive) -> Backend {
         match backend {
+            BackendDerive::None => Backend::None,
+
             #[cfg(feature = "imap")]
             BackendDerive::Imap(config) => Backend::Imap(config),
             #[cfg(not(feature = "imap"))]
@@ -495,9 +500,12 @@ impl ToString for SendingBackend {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", tag = "type")]
 pub enum SendingBackendDerive {
+    #[default]
+    None,
+
     #[cfg(feature = "smtp")]
     Smtp(SmtpConfig),
     #[cfg(not(feature = "smtp"))]
@@ -514,6 +522,8 @@ pub enum SendingBackendDerive {
 impl From<SendingBackendDerive> for SendingBackend {
     fn from(backend: SendingBackendDerive) -> SendingBackend {
         match backend {
+            SendingBackendDerive::None => SendingBackend::None,
+
             #[cfg(feature = "smtp")]
             SendingBackendDerive::Smtp(config) => SendingBackend::Smtp(config),
             #[cfg(not(feature = "smtp"))]
