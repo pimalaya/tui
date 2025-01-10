@@ -407,7 +407,6 @@ impl ListAccountsTableConfig {
 #[serde(rename_all = "kebab-case", tag = "type", from = "BackendDerive")]
 pub enum Backend {
     #[default]
-    #[serde(skip)]
     None,
     #[cfg(feature = "imap")]
     Imap(ImapConfig),
@@ -477,7 +476,6 @@ impl From<BackendDerive> for Backend {
 #[serde(rename_all = "kebab-case", tag = "type", from = "SendingBackendDerive")]
 pub enum SendingBackend {
     #[default]
-    #[serde(skip)]
     None,
     #[cfg(feature = "smtp")]
     Smtp(SmtpConfig),
