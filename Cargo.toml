@@ -79,7 +79,7 @@ config = ["dep:async-trait", "dep:color-eyre", "dep:dirs", "dep:serde-toml-merge
 keyring = ["email-lib?/keyring", "secret-lib?/keyring"]
 oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
 tracing = ["dep:color-eyre", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
-wizard = ["dep:tokio", "email-lib?/autoconfig", "config"]
+wizard = ["dep:tokio", "email-lib?/autoconfig", "config", "path"]
 build-envs = ["dep:git2", "dep:serde", "dep:toml"]
 
 [dev-dependencies]
