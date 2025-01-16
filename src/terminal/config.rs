@@ -87,11 +87,11 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     /// If no path is given, then either read and parse the TOML
     /// configuration at the first valid default path, otherwise
     /// create it using the wizard.  wizard.
+    #[cfg(feature = "wizard")]
     async fn from_paths_or_default(paths: &[PathBuf]) -> Result<Self> {
         match paths.len() {
             0 => Self::from_default_paths().await,
             _ if paths[0].exists() => Self::from_paths(paths),
-            #[cfg(feature = "wizard")]
             _ => {
                 wizard::confirm_or_exit(&paths[0])?;
                 Self::from_wizard(&paths[0])
@@ -103,11 +103,20 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
         }
     }
 
+    #[cfg(not(feature = "wizard"))]
+    fn from_paths_or_default(paths: &[PathBuf]) -> Result<Self> {
+        match paths.len() {
+            0 => Self::from_default_paths(),
+            _ if paths[0].exists() => Self::from_paths(paths),
+            _ => Err(Error::CreateTomlConfigFromInvalidPathsError),
+        }
+    }
+
     /// Read and parse the TOML configuration from default paths.
+    #[cfg(feature = "wizard")]
     async fn from_default_paths() -> Result<Self> {
         match Self::first_valid_default_path() {
             Some(path) => Self::from_paths(&[path]),
-            #[cfg(feature = "wizard")]
             None => {
                 let path = Self::default_path()?;
                 wizard::confirm_or_exit(&path)?;
@@ -115,7 +124,13 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
                     .await
                     .map_err(Error::CreateTomlConfigFromWizardError)
             }
-            #[cfg(not(feature = "wizard"))]
+        }
+    }
+
+    #[cfg(not(feature = "wizard"))]
+    fn from_default_paths() -> Result<Self> {
+        match Self::first_valid_default_path() {
+            Some(path) => Self::from_paths(&[path]),
             None => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
     }
