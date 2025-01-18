@@ -96,7 +96,7 @@ impl Printer for StdoutPrinter {
     fn out<T: fmt::Display + serde::Serialize>(&mut self, data: T) -> Result<()> {
         match self.output {
             OutputFmt::Plain => {
-                write!(self.stdout, "{data}")?;
+                writeln!(self.stdout, "{data}")?;
             }
             OutputFmt::Json => {
                 serde_json::to_writer(&mut self.stdout, &data)
