@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use color_eyre::{eyre::eyre, eyre::Context, Result};
+use anyhow::{eyre::eyre, eyre::Context, Result};
 use dirs::data_dir;
 use email::account::config::AccountConfig;
 use tracing::debug;

@@ -21,7 +21,7 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     fn get_account_config(&self, name: &str) -> Option<(String, Self::TomlAccountConfig)>;
 
     #[cfg(feature = "wizard")]
-    async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self>;
+    async fn from_wizard(path: &std::path::Path) -> anyhow::Result<Self>;
 
     /// Read and parse the TOML configuration at the given paths
     ///

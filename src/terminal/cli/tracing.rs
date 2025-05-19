@@ -1,6 +1,6 @@
 use std::env;
 
-use color_eyre::Result;
+use anyhow::Result;
 
 use crate::terminal::tracing::Tracing;
 

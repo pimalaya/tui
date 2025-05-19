@@ -17,7 +17,7 @@ pub enum Error {
     CreateTomlConfigFromInvalidPathsError,
     #[cfg(feature = "config")]
     #[error("cannot create TOML config from wizard")]
-    CreateTomlConfigFromWizardError(#[source] color_eyre::eyre::Error),
+    CreateTomlConfigFromWizardError(#[source] anyhow::Error),
     #[error("cannot prompt unsigned integer (u16)")]
     PromptU16Error(#[source] InquireError),
     #[error("cannot prompt unsigned integer (usize)")]

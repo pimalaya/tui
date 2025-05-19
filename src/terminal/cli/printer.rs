@@ -1,14 +1,11 @@
 use std::{
     fmt,
-    io::{stderr, stdout, Stderr, Stdout, Write},
+    io::{stdout, Stdout, Write},
     str::FromStr,
 };
 
+use anyhow::{bail, Context, Error, Result};
 use clap::ValueEnum;
-use color_eyre::{
-    eyre::{bail, Context, Error},
-    Result,
-};
 use serde::Serialize;
 
 /// Represents the available output formats.
@@ -44,13 +41,21 @@ impl fmt::Display for OutputFmt {
 
 /// Defines a struct-wrapper to provide a JSON output.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct OutputJson<T: Serialize> {
-    response: T,
+pub struct Message {
+    message: String,
 }
 
-impl<T: Serialize> OutputJson<T> {
-    pub fn new(response: T) -> Self {
-        Self { response }
+impl Message {
+    pub fn new(message: impl ToString) -> Self {
+        Self {
+            message: message.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for Message {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", &self.message)
     }
 }
 
@@ -72,7 +77,6 @@ pub trait Printer {
 
 pub struct StdoutPrinter {
     stdout: Stdout,
-    stderr: Stderr,
     output: OutputFmt,
 }
 
@@ -80,7 +84,6 @@ impl StdoutPrinter {
     pub fn new(output: OutputFmt) -> Self {
         Self {
             stdout: stdout(),
-            stderr: stderr(),
             output,
         }
     }
@@ -109,7 +112,7 @@ impl Printer for StdoutPrinter {
 
     fn log<T: fmt::Display + serde::Serialize>(&mut self, data: T) -> Result<()> {
         if let OutputFmt::Plain = self.output {
-            write!(&mut self.stderr, "{data}")?;
+            write!(&mut self.stdout, "{data}")?;
         }
 
         Ok(())

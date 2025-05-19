@@ -1,6 +1,6 @@
 use std::{env, fs, sync::Arc};
 
-use color_eyre::{eyre::Context, Result};
+use anyhow::{eyre::Context, Result};
 use email::{
     account::config::AccountConfig,
     email::utils::{local_draft_path, remove_local_draft},

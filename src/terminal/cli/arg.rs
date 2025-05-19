@@ -6,9 +6,10 @@ use shellexpand_utils::{canonicalize, expand};
 ///
 /// The path is shell-expanded then canonicalized (if applicable).
 pub fn path_parser(path: &str) -> Result<PathBuf, String> {
-    expand::try_path(path)
-        .map(canonicalize::path)
-        .map_err(|err| err.to_string())
+    match expand::try_path(path) {
+        Ok(path) => Ok(canonicalize::path(path)),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 #[macro_export]

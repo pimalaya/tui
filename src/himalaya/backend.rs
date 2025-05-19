@@ -1,7 +1,7 @@
 use std::{ops::Deref, sync::Arc};
 
+use anyhow::Result;
 use async_trait::async_trait;
-use color_eyre::Result;
 #[cfg(feature = "imap")]
 use email::imap::{ImapContext, ImapContextBuilder};
 #[cfg(feature = "maildir")]
