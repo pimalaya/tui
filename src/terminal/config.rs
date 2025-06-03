@@ -1,5 +1,6 @@
 use std::{fs, path::PathBuf};
 
+#[cfg(feature = "wizard")]
 use async_trait::async_trait;
 use dirs::{config_dir, home_dir};
 use serde::Deserialize;
@@ -11,7 +12,7 @@ use crate::{Error, Result};
 #[cfg(feature = "wizard")]
 use super::wizard;
 
-#[async_trait]
+#[cfg_attr(feature = "wizard", async_trait)]
 pub trait TomlConfig: for<'de> Deserialize<'de> {
     type TomlAccountConfig;
 

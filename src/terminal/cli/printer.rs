@@ -1,6 +1,6 @@
 use std::{
     fmt,
-    io::{stdout, Stdout, Write},
+    io::{stdout, IsTerminal, Stdout, Write},
     str::FromStr,
 };
 
@@ -102,8 +102,12 @@ impl Printer for StdoutPrinter {
                 writeln!(self.stdout, "{data}")?;
             }
             OutputFmt::Json => {
-                serde_json::to_writer(&mut self.stdout, &data)
-                    .context("cannot write json to writer")?;
+                if self.stdout.is_terminal() {
+                    serde_json::to_writer_pretty(&mut self.stdout, &data)
+                } else {
+                    serde_json::to_writer(&mut self.stdout, &data)
+                }
+                .context("cannot write json to writer")?;
             }
         };
 

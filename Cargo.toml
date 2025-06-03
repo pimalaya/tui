@@ -75,11 +75,11 @@ native-tls = ["email-lib?/native-tls"]
 
 # Other shared stuff
 #
-config = ["dep:async-trait", "dep:anyhow", "dep:dirs", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit", "dep:tracing"]
+config = ["dep:anyhow", "dep:dirs", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit"]
 keyring = ["email-lib?/keyring", "secret-lib?/keyring"]
 oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
 tracing = ["dep:anyhow", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
-wizard = ["dep:tokio", "email-lib?/autoconfig", "config", "path"]
+wizard = ["dep:tokio", "email-lib?/autoconfig", "config", "path", "dep:async-trait"]
 build-envs = ["dep:git2", "dep:serde", "dep:toml"]
 
 [dev-dependencies]
