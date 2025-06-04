@@ -1,7 +1,7 @@
 [package]
 name = "pimalaya-tui"
 description = "Collection of crossterm widgets shared accross Pimalaya projects"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["soywod <clement.douin@posteo.net>"]
 edition = "2021"
 license = "MIT"
