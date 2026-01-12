@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = []
+default = ["full"]
 full = [
   "himalaya",
   "imap",
@@ -71,7 +71,7 @@ path = ["dep:shellexpand-utils"]
 # TLS
 #
 rustls = ["email-lib?/rustls"]
-native-tls = ["email-lib?/native-tls"]
+# native-tls = ["email-lib?/native-tls"]
 
 # Other shared stuff
 #
@@ -81,9 +81,6 @@ oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
 tracing = ["dep:anyhow", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
 wizard = ["dep:tokio", "email-lib?/autoconfig", "config", "path", "dep:async-trait"]
 build-envs = ["dep:git2", "dep:serde", "dep:toml"]
-
-[dev-dependencies]
-pimalaya-tui = { path = ".", features = ["full"] }
 
 [dependencies]
 anyhow = { version = "1", optional = true }
@@ -110,8 +107,19 @@ shellexpand-utils = { version = "=0.2.1", optional = true }
 sled = { version = "=0.34.7", optional = true }
 thiserror = "2"
 tokio = { version = "1.40", optional = true, default-features = false, features = ["process"] }
-toml = { version = "0.8", optional = true }
-toml_edit = { version = "0.22", optional = true }
+toml = { version = "0.9", optional = true }
+toml_edit = { version = "0.24", optional = true }
 tracing = { version = "0.1", optional = true }
 tracing-error = { version = "0.2.0", optional = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional = true }
+
+[patch.crates-io]
+imap-codec.git = "https://github.com/duesee/imap-codec"
+email-lib.path = "../core/email"
+imap-client.path = "../imap-client"
+keyring-lib.path = "../core/keyring"
+mml-lib.path = "../core/mml"
+oauth-lib.path = "../core/oauth"
+pgp-lib.path = "../core/pgp"
+process-lib.path = "../core/process"
+secret-lib.path = "../core/secret"
