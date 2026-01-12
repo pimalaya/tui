@@ -1,6 +1,6 @@
 use std::{env, io::stderr};
 
-use anyhow::Result;
+use color_eyre::{eyre::Result, Section};
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{filter::LevelFilter, fmt, prelude::*, EnvFilter};
 
@@ -31,11 +31,11 @@ impl Tracing {
 
         let debug = current_filter >= LevelFilter::DEBUG;
 
-        // anyhow::config::HookBuilder::new()
-        //     .capture_span_trace_by_default(debug)
-        //     .display_location_section(debug)
-        //     .display_env_section(false)
-        //     .install()?;
+        color_eyre::config::HookBuilder::new()
+            .capture_span_trace_by_default(debug)
+            .display_location_section(debug)
+            .display_env_section(false)
+            .install()?;
 
         Ok(Self {
             filter: current_filter,

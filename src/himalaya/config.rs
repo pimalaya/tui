@@ -6,8 +6,8 @@ use std::{
     sync::Arc,
 };
 
-use anyhow::Result;
 use async_trait::async_trait;
+use color_eyre::Result;
 use comfy_table::{presets, Attribute, Cell, ContentArrangement, Row, Table};
 use crossterm::{
     cursor,
@@ -132,7 +132,7 @@ impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
     }
 
     #[cfg(feature = "wizard")]
-    async fn from_wizard(path: &std::path::Path) -> anyhow::Result<Self> {
+    async fn from_wizard(path: &std::path::Path) -> color_eyre::Result<Self> {
         Ok(super::wizard::edit(path, Self::default(), None, Default::default()).await?)
     }
 

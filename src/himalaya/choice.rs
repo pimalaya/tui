@@ -1,6 +1,6 @@
 use std::fmt;
 
-use anyhow::Result;
+use color_eyre::Result;
 
 use crate::terminal::prompt;
 

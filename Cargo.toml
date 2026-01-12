@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["full"]
+default = []
 full = [
   "himalaya",
   "imap",
@@ -61,7 +61,7 @@ pgp-native = ["email-lib?/pgp-native", "mml-lib?/pgp-native", "pgp"]
 
 # Terminal CLI shared code
 #
-cli = ["dep:clap", "dep:anyhow", "dep:serde", "dep:serde_json", "dep:shellexpand-utils"]
+cli = ["dep:clap", "dep:color-eyre", "dep:serde", "dep:serde_json", "dep:shellexpand-utils"]
 
 # Terminal prompts
 #
@@ -75,17 +75,17 @@ rustls = ["email-lib?/rustls"]
 
 # Other shared stuff
 #
-config = ["dep:anyhow", "dep:dirs", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit"]
+config = ["dep:color-eyre", "dep:dirs", "dep:serde-toml-merge", "dep:toml", "dep:toml_edit", "dep:tracing"]
 keyring = ["email-lib?/keyring", "secret-lib?/keyring"]
 oauth2 = ["dep:oauth-lib", "email-lib?/oauth2"]
-tracing = ["dep:anyhow", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
-wizard = ["dep:tokio", "email-lib?/autoconfig", "config", "path", "dep:async-trait"]
+tracing = ["dep:color-eyre", "dep:tracing", "dep:tracing-error", "dep:tracing-subscriber"]
+wizard = ["dep:async-trait", "dep:tokio", "email-lib?/autoconfig", "config", "path"]
 build-envs = ["dep:git2", "dep:serde", "dep:toml"]
 
 [dependencies]
-anyhow = { version = "1", optional = true }
 async-trait = { version = "0.1", optional = true }
 clap = { version = "4.4", features = ["derive"], optional = true }
+color-eyre = { version = "0.6", optional = true }
 comfy-table = { version = "7.1", optional = true }
 crossterm = { version = "0.27", features = ["serde"] }
 dirs = { version = "4", optional = true }
