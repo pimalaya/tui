@@ -1,6 +1,9 @@
 use std::{env, fs, sync::Arc};
 
-use color_eyre::{eyre::Context, Result};
+use color_eyre::{
+    eyre::{bail, Context},
+    Result,
+};
 use email::{
     account::config::AccountConfig,
     email::utils::{local_draft_path, remove_local_draft},
@@ -70,8 +73,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                     PreEditChoice::Quit => return Ok(()),
                 },
                 Err(err) => {
-                    println!("{}", err);
-                    continue;
+                    bail!(err);
                 }
             }
         }
@@ -97,6 +99,28 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                 remove_local_draft()?;
                 printer.out("Message successfully sent!\n")?;
                 break;
+            }
+            Ok(PostEditChoice::View) => {
+                printer.log(&tpl)?;
+                printer.log("\n\n")?;
+                continue;
+            }
+            Ok(PostEditChoice::ViewMime) => {
+                #[allow(unused_mut)]
+                let mut compiler = MmlCompilerBuilder::new();
+
+                #[cfg(feature = "pgp")]
+                compiler.set_some_pgp(config.pgp.clone());
+
+                let msg = compiler
+                    .build(tpl.as_str())?
+                    .compile()
+                    .await?
+                    .into_string()?;
+
+                printer.log(&msg)?;
+                printer.log("\n\n")?;
+                continue;
             }
             Ok(PostEditChoice::Edit) => {
                 tpl = open_with_tpl(tpl).await?;
@@ -131,8 +155,7 @@ pub async fn edit_tpl_with_editor<P: Printer>(
                 break;
             }
             Err(err) => {
-                printer.out(format!("{err}\n"));
-                continue;
+                bail!(err);
             }
         }
     }

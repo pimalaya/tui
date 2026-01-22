@@ -43,6 +43,8 @@ pub fn pre_edit() -> Result<PreEditChoice> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PostEditChoice {
+    View,
+    ViewMime,
     Send,
     Edit,
     LocalDraft,
@@ -56,6 +58,8 @@ impl fmt::Display for PostEditChoice {
             f,
             "{}",
             match self {
+                Self::View => "View it",
+                Self::ViewMime => "View MIME message",
                 Self::Send => "Send it",
                 Self::Edit => "Edit it again",
                 Self::LocalDraft => "Save it as local draft",
@@ -66,8 +70,10 @@ impl fmt::Display for PostEditChoice {
     }
 }
 
-static POST_EDIT_CHOICES: [PostEditChoice; 5] = [
+static POST_EDIT_CHOICES: [PostEditChoice; 7] = [
     PostEditChoice::Send,
+    PostEditChoice::View,
+    PostEditChoice::ViewMime,
     PostEditChoice::Edit,
     PostEditChoice::LocalDraft,
     PostEditChoice::RemoteDraft,
