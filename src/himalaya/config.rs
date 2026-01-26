@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     collections::{hash_map::Iter, HashMap, HashSet},
     fmt,
     ops::Deref,
@@ -1043,7 +1044,7 @@ impl From<Iter<'_, String, HimalayaTomlAccountConfig>> for Accounts {
             .collect();
 
         // sort accounts by name
-        accounts.sort_by(|a, b| a.name.partial_cmp(&b.name).unwrap());
+        accounts.sort_by(|a, b| a.name.partial_cmp(&b.name).unwrap_or(Ordering::Equal));
 
         Self(accounts)
     }
@@ -1474,11 +1475,18 @@ impl EnvelopesTree {
                 write!(f, "{left}{}{right}", parent.from.blue())?;
             }
 
-            let date = parent.format_date(config);
-            let cursor_date_begin_col = terminal::size().unwrap().0 - date.len() as u16;
+            let (term_len, _) = terminal::size().unwrap_or_default();
+            let (cursor_x, _) = cursor::position().unwrap_or_default();
 
-            let dots =
-                "·".repeat((cursor_date_begin_col - cursor::position().unwrap().0 - 2) as usize);
+            let date = parent.format_date(config);
+            let cursor_date_begin_col = term_len.saturating_sub(date.len() as u16);
+
+            let dots_len = cursor_date_begin_col
+                .saturating_sub(cursor_x)
+                .saturating_sub(2);
+
+            let dots = "·".repeat((dots_len) as usize);
+
             write!(f, " {} {}", dots.dark_grey(), date.dark_yellow())?;
         }
 
