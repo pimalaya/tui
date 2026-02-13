@@ -26,16 +26,30 @@ static ENCRYPTIONS: Lazy<[Encryption; 3]> = Lazy::new(|| {
 });
 
 static SECRETS: &[&str] = &[
-    RAW,
+    CMD,
     #[cfg(feature = "keyring")]
     KEYRING,
-    CMD,
+    RAW,
 ];
 
-const RAW: &str = "Ask my password, then save it in the configuration file (not safe)";
+const CMD: &str = "Use a shell command to retrieve my password (recommended)";
 #[cfg(feature = "keyring")]
 const KEYRING: &str = "Ask my password, then save it in my system's global keyring";
-const CMD: &str = "Ask me a shell command that exposes my password";
+const RAW: &str = "Save password in the configuration file (plaintext, NOT recommended)";
+
+/// Returns a platform-appropriate default command for retrieving a
+/// password from the system's secret store.
+fn default_secret_cmd(account_name: &str, protocol: &str) -> String {
+    if cfg!(target_os = "macos") {
+        format!(
+            "security find-generic-password -a '{account_name}' -s 'himalaya-{account_name}-{protocol}' -w"
+        )
+    } else if cfg!(target_os = "linux") {
+        format!("secret-tool lookup account {account_name} service himalaya-{protocol}")
+    } else {
+        String::new()
+    }
+}
 
 pub async fn start(
     account_name: impl AsRef<str>,
@@ -278,10 +292,10 @@ pub(crate) async fn configure_passwd(account_name: &str) -> Result<SmtpAuthConfi
             secret
         }
         &RAW => Secret::new_raw(prompt::password("SMTP password:")?),
-        &CMD => Secret::new_command(prompt::text(
-            "Shell command:",
-            Some(&format!("pass show {account_name}")),
-        )?),
+        &CMD => {
+            let default_cmd = default_secret_cmd(account_name, "smtp");
+            Secret::new_command(prompt::text("Shell command:", Some(&default_cmd))?)
+        }
         _ => unreachable!(),
     };
 
