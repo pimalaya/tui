@@ -35,7 +35,7 @@ static SECRETS: &[&str] = &[
 const CMD: &str = "Use a shell command to retrieve my password (recommended)";
 #[cfg(feature = "keyring")]
 const KEYRING: &str = "Ask my password, then save it in my system's global keyring";
-const RAW: &str = "Save password in the configuration file (⚠ plaintext, not recommended)";
+const RAW: &str = "Save password in the configuration file (plaintext, NOT recommended)";
 
 /// Returns a platform-appropriate default command for retrieving a
 /// password from the system's secret store.
