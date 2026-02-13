@@ -47,7 +47,7 @@ fn default_secret_cmd(account_name: &str, protocol: &str) -> String {
     } else if cfg!(target_os = "linux") {
         format!("secret-tool lookup account {account_name} service himalaya-{protocol}")
     } else {
-        format!("pass show {account_name}")
+        String::new()
     }
 }
 
