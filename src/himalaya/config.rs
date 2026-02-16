@@ -35,6 +35,7 @@ use email::{
         add::config::MessageWriteConfig, delete::config::DeleteMessageConfig,
         get::config::MessageReadConfig,
     },
+    serde::deserialize_shell_expanded_string,
     template::config::TemplateConfig,
 };
 use petgraph::graphmap::DiGraphMap;
@@ -169,6 +170,7 @@ impl crate::terminal::config::TomlConfig for HimalayaTomlConfig {
 #[serde(rename_all = "kebab-case")]
 pub struct HimalayaTomlAccountConfig {
     pub default: Option<bool>,
+    #[serde(deserialize_with = "deserialize_shell_expanded_string")]
     pub email: String,
     pub display_name: Option<String>,
     pub signature: Option<String>,
