@@ -89,7 +89,7 @@ color-eyre = { version = "0.6", optional = true }
 comfy-table = { version = "7.1", optional = true }
 crossterm = { version = "0.27", features = ["serde"] }
 dirs = { version = "4", optional = true }
-email-lib = { version = "0.26", optional = true, default-features = false, features = ["tokio-rustls"] }
+email-lib = { version = "0.27", optional = true, default-features = false, features = ["tokio-rustls"] }
 email_address = { version = "0.2", optional = true, default-features = false }
 git2 = { version = "0.19", optional = true, default-features = false }
 inquire = "0.7"
@@ -113,13 +113,13 @@ tracing = { version = "0.1", optional = true }
 tracing-error = { version = "0.2.0", optional = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional = true }
 
-[patch.crates-io]
-imap-codec.git = "https://github.com/duesee/imap-codec"
-email-lib.path = "../core/email"
-imap-client.path = "../imap-client"
-keyring-lib.path = "../core/keyring"
-mml-lib.path = "../core/mml"
-oauth-lib.path = "../core/oauth"
-pgp-lib.path = "../core/pgp"
-process-lib.path = "../core/process"
-secret-lib.path = "../core/secret"
+# [patch.crates-io]
+# imap-codec.git = "https://github.com/duesee/imap-codec"
+# email-lib.path = "../core/email"
+# imap-client.path = "../imap-client"
+# keyring-lib.path = "../core/keyring"
+# mml-lib.path = "../core/mml"
+# oauth-lib.path = "../core/oauth"
+# pgp-lib.path = "../core/pgp"
+# process-lib.path = "../core/process"
+# secret-lib.path = "../core/secret"
