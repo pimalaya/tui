@@ -105,9 +105,9 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     }
 
     #[cfg(not(feature = "wizard"))]
-    fn from_paths_or_default(paths: &[PathBuf]) -> Result<Self> {
+    async fn from_paths_or_default(paths: &[PathBuf]) -> Result<Self> {
         match paths.len() {
-            0 => Self::from_default_paths(),
+            0 => Self::from_default_paths().await,
             _ if paths[0].exists() => Self::from_paths(paths),
             _ => Err(Error::CreateTomlConfigFromInvalidPathsError),
         }
@@ -129,7 +129,7 @@ pub trait TomlConfig: for<'de> Deserialize<'de> {
     }
 
     #[cfg(not(feature = "wizard"))]
-    fn from_default_paths() -> Result<Self> {
+    async fn from_default_paths() -> Result<Self> {
         match Self::first_valid_default_path() {
             Some(path) => Self::from_paths(&[path]),
             None => Err(Error::CreateTomlConfigFromInvalidPathsError),
